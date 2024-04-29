@@ -1,0 +1,128 @@
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itfactory.solution.Mapper.ALAMODE_MES.COMMON.CommonMapper">
+<select id="MenuList" resultType="HashMap" parameterType="HashMap">
+		select x.clm_menu_id, x.clm_menu_name, x.clm_screen_id, x.clm_screen_name, x.clm_screen_order, x.title, x.screen_script, x.lead_end_menu_script
+			 , cast(x.current_row as varchar) current_row , cast(x.total_menu_screen_cnt as varchar) total_menu_screen_cnt
+		     , case when cast(x.current_row as varchar) = '1' then x.start_menu_script else '' end start_menu_script
+		     , case when cast(x.current_row as varchar) = cast(x.total_menu_screen_cnt as varchar) then x.end_menu_script else '' end end_menu_script
+		  from (  
+			  select x.clm_menu_id, x.clm_menu_name, x.clm_screen_id, x.clm_screen_name, cast(cast( x.clm_menu_order as numeric) as varchar) clm_menu_order, cast(cast( x.clm_screen_order as numeric) as varchar) clm_screen_order, ('/' || x.clm_screen_id) as title
+				   , x.start_menu_script, x.end_menu_script , x.screen_script, lead(x.end_menu_script) over (order by cast(x.clm_menu_order as numeric), cast(x.clm_screen_order as numeric)) as lead_end_menu_script
+			       , ROW_NUMBER() OVER (PARTITION BY x.clm_menu_id ORDER BY cast(x.clm_menu_order as numeric) , cast(x.clm_screen_order as numeric)) current_row
+			       , (select count(*) 
+				    	 from tbl_vue_screen_info a 
+				    	where x.clm_menu_id = a.clm_screen_gubun 
+			  	    	   and a.clm_screen_use_yn = 'Y') total_menu_screen_cnt
+			    from (
+					    select x.clm_screen_id clm_menu_id, x.clm_screen_name clm_menu_name, y.clm_screen_id, y.clm_screen_name, x.clm_menu_order, y.clm_screen_order
+					        , cast('{ icon: ''mdi-home'', title: ''' as varchar) || x.clm_screen_name || cast(''', items:[' as varchar) start_menu_script, '] }' end_menu_script
+					        , cast('{ icon: '''', title: ''' as varchar) || y.clm_screen_name || cast(''', route: ''/' as varchar) || y.clm_screen_id || cast(''' }' as varchar) as screen_script
+					        , ROW_NUMBER() OVER (PARTITION BY x.clm_screen_id ORDER BY cast(x.clm_menu_order as numeric), cast(y.clm_screen_order as numeric)) current_row
+					        , (select count(*) 
+					        	 from tbl_vue_screen_info a 
+					        	where x.clm_screen_id = a.clm_screen_gubun 
+					        	  and a.clm_screen_use_yn = 'Y') total_menu_screen_cnt
+					      from tbl_vue_screen_info x, tbl_vue_screen_info y
+					     where x.clm_screen_gubun = 'M'
+					       and y.clm_screen_gubun != 'M'
+					       and x.clm_screen_use_yn = 'Y'
+					       and y.clm_screen_use_yn = 'Y'
+					       and x.clm_screen_id = y.clm_screen_gubun
+					     order by cast(x.clm_menu_order as numeric), cast(y.clm_screen_order as numeric)
+			          ) x
+			   group by x.clm_menu_id, x.clm_menu_name, x.clm_screen_id, x.clm_screen_name, x.clm_menu_order, x.clm_screen_order, x.start_menu_script, x.end_menu_script, x.screen_script
+			   order by cast(x.clm_menu_order as numeric) , cast(x.clm_screen_order as numeric)
+		  ) x
+		 where 1=1
+		 order by cast(x.clm_menu_order as numeric) , cast(x.clm_screen_order as numeric)
+	</select>
+	
+	<select id="Authority" resultType="HashMap" parameterType="HashMap">
+		select y.clm_authority_id, y.clm_screen_name
+			 , case when ((y.clm_authority_id = x.clm_user_authority) and coalesce(y.clm_select_yn, 'N') = 'Y') or coalesce(y.clm_authority_id = '전체권한') then 'Y' else 'N' end clm_authority_yn
+			 , coalesce(y.clm_select_yn, 'N') clm_select_yn, coalesce(y.clm_update_yn, 'N') clm_update_yn, coalesce(y.clm_delete_yn, 'N') clm_delete_yn
+		  from tbl_user_info x
+		  left outer join (
+				select x.clm_screen_name, case coalesce(x.clm_screen_use_yn, 'N') when 'N' then '화면없음' else coalesce(y.clm_authority_id, '전체권한') end clm_authority_id
+					 , coalesce(y.clm_screen_select_yn, 'Y') clm_select_yn, coalesce(y.clm_screen_update_yn, 'Y') clm_update_yn, coalesce(y.clm_screen_delete_yn, 'Y') clm_delete_yn
+				  from (select * from tbl_screen_info) x
+				  left outer join (select * from tbl_screen_sub_info where clm_screen_use_yn = 'Y') y on x.clm_screen_id = y.clm_screen_id
+				 where 1=1
+				   and x.clm_screen_id = #{screen_id}
+		   	   ) y
+		   	--on ((x.clm_user_authority = y.clm_authority_id and x.clm_user_authority != '') or y.clm_authority_id = '')
+		   	on ((x.clm_user_authority = y.clm_authority_id and x.clm_user_authority != '') or y.clm_authority_id = '전체권한') 
+		 where y.clm_authority_id != '화면없음'
+		   and x.clm_user_id = #{user_id}
+	</select>
+	
+	<select id="MessageList" resultType="HashMap" parameterType="String">
+		select x.clm_message_id, coalesce(x.clm_message_title, '') clm_message_title, coalesce(x.clm_message_text, '') clm_message_text
+			 , x.clm_sender_user_id, x.clm_receive_user_id, coalesce(y1.clm_user_name, '') clm_sender_user_name, coalesce(y2.clm_user_name, '') clm_receive_user_name
+			 , left(x.clm_sender_datetime, 4) || '-' || substring(x.clm_sender_datetime, 5, 2) || '-' || substring(x.clm_sender_datetime, 7, 2) || ' ' || substring(x.clm_sender_datetime, 9, 2) || ':' || substring(x.clm_sender_datetime, 11, 2) || ':' || substring(x.clm_sender_datetime, 13, 2) clm_sender_datetime
+		  from public.tbl_message_info x, tbl_user_info y1, tbl_user_info y2
+		 where x.clm_sender_user_id = y1.clm_user_id
+		   and x.clm_receive_user_id = y2.clm_user_id
+		   and x.clm_receive_confirm_yn = 'N'
+		   and x.clm_receive_user_id = #{value}
+		 order by x.clm_sender_datetime asc
+	</select>
+	
+	<update id="MSGConfirm" parameterType="String">
+		update tbl_message_info
+		   set clm_receive_confirm_datetime = to_char(now(), 'YYYYMMDDHH24MISSMS'::text)
+		     , clm_receive_confirm_yn = 'Y'
+		 where clm_message_id = #{value}
+	</update>
+	
+	<insert id="MSGSave" parameterType="HashMap">
+		insert into tbl_message_info
+			(clm_sender_user_id, clm_receive_user_id, clm_message_title, clm_message_text)
+		values
+			(#{user_id}, #{receive_user_id}, #{msg_title}, '')
+	</insert>
+	
+	<select id="ClientInfo" resultType="HashMap" parameterType="String">
+		select x.clm_client_id, coalesce(y.clm_client_name, '') clm_client_name, coalesce(y.clm_client_address, '') clm_client_address
+			 , coalesce(y.clm_client_ceo_phone, '') clm_client_ceo_phone
+			 , coalesce(y.clm_client_employee1_phone, '') clm_client_employee1_phone
+			 , coalesce(y.clm_client_employee2_phone, '') clm_client_employee2_phone
+			 , coalesce(y.clm_client_employee3_phone, '') clm_client_employee3_phone
+			 , coalesce(y.clm_client_employee4_phone, '') clm_client_employee4_phone
+			 , coalesce(y.clm_client_employee5_phone, '') clm_client_employee5_phone
+		  from (
+				select clm_client_id 
+				  from tbl_joborder_estimation_info
+				 where clm_joborder_seq = #{value}
+				 union all
+				select clm_client_id 
+				  from tbl_joborder_estimation_label_info
+				 where clm_joborder_seq = #{value}
+			   ) x
+		  left outer join tbl_client_info y on x.clm_client_id = y.clm_client_id
+	</select>
+	
+	<select id="CodeList" resultType="HashMap" parameterType="String">
+		select '' clm_code_sub_id, '전체' clm_code_sub_name
+ 		 union all
+		select clm_code_sub_id, clm_code_sub_name 
+		  from tbl_code_info 
+		 where clm_code_id = #{value}
+		 order by clm_code_sub_id
+	</select>
+	
+	<select id="ClientList" resultType="HashMap">
+		select clm_client_id, clm_client_name
+		 from (
+			select '' clm_client_id, '전체' clm_client_name
+			 union all
+			select clm_client_id, clm_client_name 
+			  from tbl_client_info
+			 where 1=1
+		) x
+		order by case clm_client_id when '' then 0 else 1 end, clm_client_name
+	</select>
+</mapper>

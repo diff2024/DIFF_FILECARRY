@@ -1,0 +1,13 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itfactory.solution.Mapper.TEMP_MES.TEMP_MESMapper">
+	
+	<select  id="GetHumidityReal" resultType="HashMap" parameterType="HashMap">
+		select cast(max(cast(clm_humid as numeric)) as varchar) clm_humid, substring(clm_reg_datetime,12,2) clm_hour
+			from tbl_alamode_humid
+			where substring(clm_reg_datetime,0,11) = #{clm_year}|| '-' || LPAD(#{clm_month},2,'0') || '-' || LPAD(#{clm_date},2,'0')
+			group by substring(clm_reg_datetime,0,11), substring(clm_reg_datetime,12,2)
+			order by cast(substring(clm_reg_datetime,12,2) as numeric)
+	</select>
+	
+</mapper>

@@ -1,0 +1,28 @@
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itfactory.solution.Mapper.ALAMODE_MES.COMMON.KakaoMapper">
+	
+	<select id="GetHumidity" resultType="String" parameterType="HashMap">
+		select coalesce(clm_temp_humidity,'') clm_temp_humidity
+		from tbl_temp_humidity_info
+		 where clm_year = (substring(cast(current_date as varchar),0,5)) 
+		 and cast(clm_month as integer)= cast(substring(cast(current_date as varchar),6,2) as integer)
+		 and cast(clm_date as integer) =cast(substring(cast(current_date as varchar),9,2)as integer)
+	</select>
+	
+	<select id="ExistAlarm30Min" resultType="String" parameterType="HashMap">
+		select case when count(*)>0 then 'Y' else 'N' end
+		from tbl_kakao_talk_log
+		where cast(substring(clm_reg_datetime,0,9)|| ' ' ||substring(clm_reg_datetime,9,6) as timestamp) >  cast((now() - interval '30 minute')::varchar  as timestamp) 
+	</select>
+	
+	<insert id="SaveKaKaoLog" parameterType="HashMap">
+		insert into tbl_kakao_talk_log
+			(clm_company_key,  clm_log_id, clm_log_gubun, clm_phone_number, clm_temp_humidity, clm_standard_temp_humidity, clm_reg_user)
+		values
+			(#{clm_company_key},  (select case when max(clm_log_id) is null then '1' else cast(max(cast(clm_log_id as numeric))+1 as varchar) end from tbl_kakao_talk_log), #{clm_log_gubun}, #{clm_phone_number}, #{clm_temp_humidity}, #{clm_standard_temp_humidity}, '')
+	</insert>
+	
+</mapper>

@@ -1,0 +1,864 @@
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itfactory.solution.Mapper.ALAMODE_MES.COMMON.PopupMapper">
+	<select id="ClientList" resultType="HashMap" parameterType="HashMap">
+		select cast(ROW_NUMBER() OVER (ORDER BY replace(replace(replace(clm_client_name,'(주)',''),'(유)',''),' ','') asc) as varchar) num
+		     , clm_client_id, clm_client_name, coalesce(clm_client_ceo,'') clm_client_ceo, coalesce(clm_client_serial_no,'') clm_client_serial_no
+		  from tbl_client_info
+		  where 1=1
+		<if test='search != null and search != "" '>
+		  and (clm_client_name ilike '%' || trim(#{search}) || '%'
+		  or clm_client_ceo ilike '%' || trim(#{search}) || '%'
+		  or clm_client_serial_no ilike '%' || trim(#{search}) || '%')
+		</if>
+		 order by replace(replace(replace(clm_client_name,'(주)',''),'(유)',''),' ','') asc
+	</select>
+	
+	<select id="ProductList" resultType="HashMap" parameterType="String">
+		select cast(ROW_NUMBER() OVER (ORDER BY clm_product_name asc) as varchar) num
+		     , clm_product_id, clm_product_name, cast(cast(clm_width as numeric) as varchar) clm_width, cast(cast(clm_height as numeric) as varchar) clm_height, cast(cast(clm_thickness as numeric) as varchar) clm_thickness
+		  from tbl_product_info
+		<if test='value != null and value != "" '>
+		 where clm_product_name ilike '%' || trim(#{value}) || '%'
+		</if>
+		 order by clm_product_name asc
+	</select>
+	
+	<select id="WorkUserList" resultType="HashMap" parameterType="String">
+		select x.clm_user_department_id,y.clm_department_name, x.clm_user_id, x.clm_user_name, 'N' clm_check_yn 
+			,case when  (x.clm_user_department_id!='0005' and x.clm_user_department_id!='0006' and x.clm_user_department_id!='0007' and x.clm_user_department_id!='0008' and x.clm_user_department_id!='0009') then '0004' when (x.clm_user_department_id='0006' or x.clm_user_department_id='0007') then '0007' when (x.clm_user_department_id='0008' or x.clm_user_department_id='0009') then '0009' else x.clm_user_department_id end search_id
+			from tbl_user_info x , tbl_department_info y  
+		where x.clm_user_work_yn ='Y' and x.clm_user_department_id = y.clm_department_id 
+		<if test='value != null and value != "" '>
+		 and case when #{value}='0004' then (x.clm_user_department_id!='0005' and x.clm_user_department_id!='0006' and x.clm_user_department_id!='0007' and x.clm_user_department_id!='0008' and x.clm_user_department_id!='0009') when #{value}='0007' then (x.clm_user_department_id='0006' or x.clm_user_department_id='0007') when #{value}='0009' then (x.clm_user_department_id='0008' or x.clm_user_department_id='0009') else x.clm_user_department_id=#{value} end
+		</if>
+		group by x.clm_user_department_id,y.clm_department_name,x.clm_user_id , x.clm_user_name
+		order by case when y.clm_department_name like '%왜관%' then 1 when y.clm_department_name like '%아곡%' then 2 when y.clm_department_name like '%당진%' then 3 else 4 end, x.clm_user_name
+	</select>
+	
+	<select id="SendUserList" resultType="HashMap">
+		select a.clm_user_id, a.clm_user_name, case when coalesce(a.clm_user_id ,'')!='' and coalesce(a.clm_user_id ,'') in (select clm_code_sub_name from tbl_code_sub_info where clm_code_id = '0029' group by clm_code_sub_name) then 'Y' else 'N' end clm_insert_yn
+		from tbl_user_info a
+	</select>
+	
+	<select id="KakaoUserList" resultType="HashMap">
+		select clm_code_sub_name clm_kakao_user_number, clm_code_sub_value clm_kakao_user_name from tbl_code_sub_info where clm_code_id ='0028'
+	</select>
+		
+	<select id="PartUserList" resultType="HashMap" parameterType="String">
+		select x.clm_user_department_id,y.clm_department_name, x.clm_user_id, x.clm_user_name, 'N' clm_check_yn 
+			,case when (x.clm_user_department_id!='0005' and x.clm_user_department_id!='0006' and x.clm_user_department_id!='0007' and x.clm_user_department_id!='0008' and x.clm_user_department_id!='0009') then '0004' when (x.clm_user_department_id='0006' or x.clm_user_department_id='0007') then '0007' when (x.clm_user_department_id='0008' or x.clm_user_department_id='0009') then '0009' else x.clm_user_department_id end search_id
+			from tbl_user_info x , tbl_department_info y  
+		where x.clm_user_department_id = y.clm_department_id and coalesce(clm_user_part_yn,'N') = 'Y'
+		<if test='value != null and value != "" '>
+		 and case when #{value}='0004' then (x.clm_user_department_id!='0005' and x.clm_user_department_id!='0006' and x.clm_user_department_id!='0007' and x.clm_user_department_id!='0008' and x.clm_user_department_id!='0009') when #{value}='0007' then (x.clm_user_department_id='0006' or x.clm_user_department_id='0007') when #{value}='0009' then (x.clm_user_department_id='0008' or x.clm_user_department_id='0009') else x.clm_user_department_id=#{value} end
+		</if>
+		group by x.clm_user_department_id,y.clm_department_name,x.clm_user_id , x.clm_user_name
+		order by case when y.clm_department_name like '%왜관%' then 1 when y.clm_department_name like '%아곡%' then 2 when y.clm_department_name like '%당진%' then 3 else 4 end, x.clm_user_name
+	</select>
+			
+	<select id="CheckMachineList" resultType="HashMap" parameterType="String">
+		select x.clm_machine_id ,x.clm_machine_name ,y.clm_code_sub_id,y.clm_code_sub_name , 'N' clm_check_yn
+			, case when (x.clm_machine_type_id!='0001' and x.clm_machine_type_id!='0002') then '0003' else x.clm_machine_type_id end search_id
+			from tbl_machine_info x, tbl_code_sub_info y
+			where x.clm_machine_type_id =y.clm_code_sub_id and y.clm_code_id ='0010' and x.clm_machine_type_id !='0010' and  x.clm_machine_type_id !='0011'
+		<if test='value != null and value != "" '>
+			and case when #{value}='0003' then (x.clm_machine_type_id!='0001' and x.clm_machine_type_id!='0002') else x.clm_machine_type_id=#{value} end
+		</if>
+		order by case when x.clm_machine_type_id='0003' then 1 when  x.clm_machine_type_id='0007' then 2 when  x.clm_machine_type_id='0005' then 3 when x.clm_machine_type_id='0005' then 3 when  x.clm_machine_type_id='0009' then 4  when  x.clm_machine_type_id='0004' then 5 else 6 end,x.clm_machine_name
+	</select>
+	
+	<select id="PartList" resultType="HashMap" parameterType="String">
+		select cast(ROW_NUMBER() OVER (ORDER BY x.clm_part_name asc) as varchar) num
+			 , cast(x.clm_part_id as varchar) clm_part_id, clm_part_name, cast(cast(clm_width as numeric) as varchar) clm_width, cast(cast(clm_height as numeric) as varchar) clm_height, cast(cast(clm_thickness as numeric) as varchar) clm_thickness
+	      from tbl_part_info x
+	      where 1=1
+		<if test='value != null and value != "" '>
+	       and ( x.clm_part_name ilike '%' || trim(#{value}) || '%' )
+	    </if>
+	     order by x.clm_part_name asc
+	</select>
+		
+	<select id="UserList" resultType="HashMap" parameterType="HashMap">
+		select cast(ROW_NUMBER() OVER (ORDER BY x.clm_user_name asc) as varchar) num, x.clm_user_id
+			 , x.clm_user_name, x.clm_user_department_id, y.clm_department_name clm_user_department_name, x.clm_user_authority_id, z.clm_authority_name clm_user_authority_name
+	      from tbl_user_info x
+	      left outer join tbl_department_info y on x.clm_user_department_id = y.clm_department_id
+	      left outer join tbl_authority_info z on x.clm_user_authority_id = z.clm_authority_id
+	     where 1=1 and coalesce(x.clm_user_work_yn,'N') ='Y'
+	       <if test='search != null and search != "" '>
+	       and( x.clm_user_name ilike '%' || trim(#{search}) || '%'
+	       or y.clm_department_name ilike '%' || trim(#{search}) || '%')
+	       </if>
+	     order by x.clm_user_name asc
+	</select>
+	
+	<select id="MachineList" resultType="HashMap" parameterType="String">
+		select cast(ROW_NUMBER() OVER (ORDER BY x.clm_machine_type_id, x.clm_machine_name asc) as varchar) num
+			 , x.clm_machine_id, x.clm_machine_name, x.clm_machine_type_id, y.clm_code_sub_name clm_machine_type_name, x.clm_comment
+		  from tbl_machine_info x, tbl_code_sub_info y
+		 where x.clm_machine_type_id = y.clm_code_sub_id and y.clm_code_id = '0010'
+		 <if test='value != null and value != "" '>
+		   and x.clm_machine_name ilike '%' || trim(#{value}) || '%'
+		 </if>
+		 order by x.clm_machine_type_id, x.clm_machine_name asc
+	</select>
+	
+	<select id="MaterialTypeList" resultType="HashMap" >
+		select clm_material_type_id clm_code_sub_id, x1.clm_code_sub_name
+			from tbl_material_info x 
+			left outer join tbl_code_sub_info x1 on x.clm_company_key=x1.clm_company_key and x.clm_material_type_id = x1.clm_code_sub_id and x1.clm_code_id ='MA_A'
+			group by clm_material_type_id, x1.clm_code_sub_name
+		 order by cast(clm_material_type_id as numeric) asc
+	</select>
+	
+	<select id="MaterialNameList" resultType="HashMap" parameterType="HashMap">
+			select clm_material_name_id clm_code_sub_id, x2.clm_code_sub_name 
+			from tbl_material_info x 
+			left outer join tbl_code_sub_info x2 on x.clm_company_key=x2.clm_company_key and x.clm_material_name_id = x2.clm_code_sub_id and x2.clm_code_id ='MA_B'
+			where clm_material_type_id =#{clm_material_type_id}
+			group by clm_material_name_id, x2.clm_code_sub_name
+			 order by cast(clm_material_name_id as numeric) asc
+	</select>
+	
+	<select id="MaterialSpecList" resultType="HashMap" parameterType="HashMap">
+			select clm_material_id clm_code_sub_id, x.clm_material_spec clm_code_sub_name
+			from tbl_material_info x 
+			where clm_material_type_id =#{clm_material_type_id} and clm_material_name_id =#{clm_material_name_id}
+			group by clm_material_id , x.clm_material_spec 
+			order by cast(clm_material_id as numeric) asc
+	</select>
+	
+	<select id="MaterialCubeList" resultType="HashMap" parameterType="String">
+	select cast(ROW_NUMBER() OVER (ORDER BY x.clm_material_order_id asc, x.clm_order_income_seq asc) as varchar) num
+		 , x.clm_material_order_id, x.clm_material_id, x2.clm_material_name
+		 , cast(coalesce(z.clm_income_cube_size, x.clm_cube_size) as varchar) clm_cube_size
+		 , case when z.clm_material_order_id is null then '주문' else '잔재' end leftover_yn 
+	  from tbl_material_order_repository_info x 
+	  left outer join tbl_material_leftover_repository_info z on x.clm_material_order_id = z.clm_material_order_id and x.clm_income_material_seq = z.clm_income_material_seq
+	  left outer join tbl_warehouse_repository_info w1 on x.clm_load_repository = w1.clm_repository_id and x.clm_load_repository_position = w1.clm_repository_position_id
+	  left outer join tbl_warehouse_repository_info w2 on z.clm_load_repository = w2.clm_repository_id and z.clm_load_repository_position = w2.clm_repository_position_id
+	  	 , tbl_material_release_repository_info y, tbl_material_info x2
+	 where x.clm_material_id = x2.clm_material_id
+	   and x.clm_material_order_id = y.clm_material_order_id and x.clm_income_material_seq = y.clm_income_material_seq
+	 <if test='value != null and value != "" '>
+	   and x.clm_material_order_id ilike '%' || trim(#{value}) || '%'
+	 </if>
+	 order by x.clm_material_order_id asc, x.clm_order_income_seq asc
+	</select>
+	
+	<select id="DirectionList" resultType="HashMap" parameterType="String">
+	select cast(ROW_NUMBER() OVER (ORDER BY x.clm_direction_title asc) as varchar) num
+		 , x.clm_direction_id, x.clm_direction_title, coalesce(x.clm_direction_text,'') clm_direction_text
+	  from tbl_direction_info x
+	  left outer join tbl_material_order_info y on x.clm_direction_id = y.clm_direction_id
+	 where 1=1 and y.clm_material_order_id is null
+	  and x.clm_direction_check_yn = 'Y' and x.clm_direction_exec_yn = 'Y' and coalesce(x.clm_direction_complete_yn, 'N') = 'N' 
+	 <if test='value != null and value != "" '>
+	   and x.clm_direction_title ilike '%' || trim(#{value}) || '%'
+	 </if>
+	 order by x.clm_direction_title asc
+	</select>
+			 
+	<select id="ALLMaterialList" resultType="HashMap" parameterType="String">
+		select cast(ROW_NUMBER() OVER (ORDER BY substring(a.clm_material_order_id,3) desc, cast(a.clm_order_income_seq as integer) asc , cast(a.clm_income_material_seq as integer) asc, coalesce(cast(a.clm_material_leftover_seq as integer),0) asc) as varchar) num
+			 , a.clm_material_order_id, a.clm_order_income_seq, a.clm_income_material_seq, a.clm_material_leftover_seq, a.clm_material_id, a.gubun, coalesce(a.clm_load_repository, '') clm_load_repository, coalesce(a.clm_load_repository_position, '') clm_load_repository_position
+			 , TO_CHAR(cast(a.clm_order_count as numeric),'FM999999999') clm_order_count, coalesce(cast(a.clm_order_count as varchar),'0') clm_cube_size, coalesce(a.clm_material_release_gubun,'') clm_material_release_gubun, cast(coalesce(a.clm_holl_size,0) as varchar) clm_holl_size
+			 , case when coalesce(a.clm_material_leftover_seq, '0')='0' then a.clm_material_order_id || '-' || a.clm_order_income_seq || '-' || a.clm_income_material_seq else a.clm_material_order_id || '-' || a.clm_order_income_seq|| '-' || a.clm_income_material_seq || '-' || a.clm_material_leftover_seq  end lotNo	 	
+			 , case when coalesce(a.clm_holl_size,0)=0 and substring(a.clm_material_order_id,0,3)!='MP' then concat(coalesce(t1.clm_code_sub_name, ''),' ', m.clm_material_name)
+					 		when coalesce(a.clm_holl_size,0)=0 and substring(a.clm_material_order_id,0,3)='MP' then concat(coalesce(t2.clm_code_sub_name, ''),' ', h.clm_half_product_name)
+					 		when coalesce(a.clm_holl_size,0)!=0 and substring(a.clm_material_order_id,0,3)!='MP' then concat(coalesce(t1.clm_code_sub_name, ''),' ', m.clm_material_name,' ∅',coalesce(a.clm_holl_size,0)) 
+					 		when coalesce(a.clm_holl_size,0)!=0 and substring(a.clm_material_order_id,0,3)='MP' then concat(coalesce(t2.clm_code_sub_name, ''),' ', h.clm_half_product_name,' ∅',coalesce(a.clm_holl_size,0)) 
+					 		end clm_material_name
+			 , case when substring(a.clm_material_order_id,0,3)!='MP' then coalesce(m.clm_material_type,'') else coalesce(h.clm_half_type,'') end clm_material_type, coalesce(t1.clm_code_sub_name, '') clm_material_type_name
+			 , case when substring(a.clm_material_order_id,0,3)!='MP' then cast(cast(m.clm_width as numeric) as varchar) else cast(coalesce(h.clm_width,0) as varchar) end clm_material_width
+			 , case when substring(a.clm_material_order_id,0,3)!='MP' then cast(cast(m.clm_height as numeric) as varchar)  else cast(coalesce(h.clm_height,0) as varchar) end clm_material_height
+			 , case when substring(a.clm_material_order_id,0,3)!='MP' then cast(cast(m.clm_thickness as numeric) as varchar) else cast(coalesce(h.clm_thickness,0) as varchar) end clm_material_thickness 
+			from(
+			   select x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, '0' clm_material_leftover_seq, x.clm_material_id, x.gubun, coalesce(x.clm_load_repository, '') clm_load_repository, coalesce(x.clm_load_repository_position, '') clm_load_repository_position
+			   		  , cast(coalesce(x.clm_order_count,0) as varchar) clm_order_count, x.clm_material_release_gubun, x.clm_holl_size
+				  from (
+				      select clm_material_order_id, clm_order_income_seq, clm_income_material_seq, clm_material_id, clm_load_repository, clm_load_repository_position, 'O' gubun, clm_order_count, clm_material_release_gubun, clm_holl_size
+				        from tbl_material_order_repository_info
+				       union all  
+				      select clm_material_cut_id, clm_order_income_seq, clm_income_material_seq, clm_material_id, clm_load_repository, clm_load_repository_position, 'C' gubun, clm_order_count, clm_material_release_gubun , clm_holl_size
+				        from tbl_material_cut_repository_info
+				       union all 
+				      select clm_half_order_id, clm_half_income_seq clm_order_income_seq, clm_half_material_seq clm_income_material_seq, clm_half_id clm_material_id, clm_load_repository, clm_load_repository_position, 'H' gubun, clm_income_cube_size clm_order_count, clm_material_release_gubun, clm_holl_size
+				        from tbl_material_half_repository_info
+				       ) x
+					 where (x.clm_material_order_id || '-' || x.clm_order_income_seq || '-' || x.clm_income_material_seq) not in
+					      (select (y.clm_material_order_id  || '-' || y.clm_order_income_seq || '-' || y.clm_income_material_seq) from tbl_material_leftover_repository_info y where x.clm_material_order_id = y.clm_material_order_id and x.clm_order_income_seq = y.clm_order_income_seq and x.clm_income_material_seq = y.clm_income_material_seq)
+			 	union all
+				(select L1.clm_material_order_id, L1.clm_order_income_seq, L1.clm_income_material_seq, L1.clm_material_leftover_seq 
+				    , case when coalesce(O1.clm_material_id, '') != '' then O1.clm_material_id when coalesce(C1.clm_material_id, '') != '' then C1.clm_material_id when coalesce(H1.clm_half_id, '') != '' then H1.clm_half_id end clm_material_id
+				    , case when coalesce(O1.clm_material_id, '') != '' then 'O' when coalesce(C1.clm_material_id, '') != '' then 'C' when coalesce(H1.clm_half_id, '') != '' then 'H' end gubun
+				    , coalesce(L1.clm_load_repository, '') clm_load_repository, coalesce(L1.clm_load_repository_position, '') clm_load_repository_position
+				    , cast(coalesce(L1.clm_income_cube_size,0) as varchar) clm_order_count, L1.clm_material_release_gubun, L1.clm_holl_size
+				  from tbl_material_leftover_repository_info L1
+				  left outer join tbl_material_order_repository_info O1 on L1.clm_material_order_id = O1.clm_material_order_id and L1.clm_order_income_seq = O1.clm_order_income_seq and L1.clm_income_material_seq = O1.clm_income_material_seq 
+				  left outer join tbl_material_cut_repository_info C1 on L1.clm_material_order_id = C1.clm_material_cut_id and L1.clm_order_income_seq = C1.clm_order_income_seq and L1.clm_income_material_seq = C1.clm_income_material_seq
+				  left outer join tbl_material_half_repository_info H1 on L1.clm_material_order_id = H1.clm_half_order_id and L1.clm_order_income_seq = H1.clm_half_income_seq and L1.clm_income_material_seq = H1.clm_half_material_seq 
+				 where L1.clm_material_leftover_seq = (
+		 				select cast(max(cast(clm_material_leftover_seq as integer)) as varchar) clm_material_leftover_seq
+		                   from tbl_material_leftover_repository_info 
+		                    where clm_material_order_id = L1.clm_material_order_id and clm_order_income_seq = L1.clm_order_income_seq and clm_income_material_seq = L1.clm_income_material_seq
+		                   group by clm_material_order_id, clm_order_income_seq, clm_income_material_seq
+		                   )
+				 order by clm_material_order_id, clm_order_income_seq, clm_income_material_seq, clm_material_leftover_seq)	   
+		   ) a
+		   left outer join tbl_material_info m on a.clm_material_id = m.clm_material_id
+		   left outer join tbl_material_half_info h on a.clm_material_id = h.clm_half_id
+		   left outer join tbl_code_sub_info t1 on m.clm_material_type = t1.clm_code_sub_id and t1.clm_code_id = '0001'
+		   left outer join tbl_code_sub_info t2 on h.clm_half_type = t2.clm_code_sub_id and t2.clm_code_id = '0001'
+		   left outer join tbl_material_etc_release_info etc on a.clm_material_order_id = etc.clm_material_order_id and a.clm_income_material_seq = etc.clm_income_material_seq  and a.clm_order_income_seq = etc.clm_order_income_seq and a.clm_material_leftover_seq= etc.clm_material_leftover_seq
+		   left outer join (select clm_after_joborder_id ,clm_material_order_id, clm_income_material_seq, clm_order_income_seq,clm_material_leftover_seq from tbl_after_joborder_info where coalesce(clm_process_datetime ,'')='' and clm_gubun ='M') aj on a.clm_material_order_id = aj.clm_material_order_id and a.clm_income_material_seq = aj.clm_income_material_seq and a.clm_order_income_seq = aj.clm_order_income_seq and a.clm_material_leftover_seq = aj.clm_material_leftover_seq
+	   	   where 1=1 and coalesce(cast(a.clm_order_count as numeric),0)>0 and coalesce(a.clm_material_release_gubun,'')='' and coalesce(etc.clm_material_etc_release_id,'')=''  and coalesce(aj.clm_after_joborder_id,'')=''
+		       and a.clm_load_repository||a.clm_load_repository_position not in (select clm_code_sub_name||clm_code_sub_value from tbl_code_sub_info where clm_code_id ='0019')
+		       and coalesce(a.clm_load_repository,'')!='' and coalesce(a.clm_load_repository_position,'')!='' 
+ 			<if test='search != null and search != "" '>
+			   and (concat(a.clm_material_order_id,'-',a.clm_order_income_seq,'-',a.clm_income_material_seq,'-',a.clm_material_leftover_seq) ilike '%' || trim(#{search})  || '%'
+			   or concat(coalesce(t2.clm_code_sub_name, ''),' ', h.clm_half_product_name,' ∅',coalesce(a.clm_holl_size,0)) ilike '%' || trim(#{search})  || '%'
+			   or concat(coalesce(t1.clm_code_sub_name, ''),' ', m.clm_material_name,' ∅',coalesce(a.clm_holl_size,0)) ilike '%' || trim(#{search})  || '%' )
+			</if>
+			<if test='search2 != null and search2 != "" '>
+				and case when substring(a.clm_material_order_id,0,3)!='MP' then cast(cast(m.clm_width as numeric) as varchar) else cast(coalesce(h.clm_width,0) as varchar) end=#{search2}
+	        </if>
+			<if test='search3 != null and search3 != "" '>
+				and case when substring(a.clm_material_order_id,0,3)!='MP' then cast(cast(m.clm_height as numeric) as varchar) else cast(coalesce(h.clm_height,0) as varchar) end=#{search3}
+	        </if>
+			<if test='search4 != null and search4 != "" '>
+				and case when substring(a.clm_material_order_id,0,3)!='MP' then cast(cast(m.clm_thickness as numeric) as varchar) else cast(coalesce(h.clm_thickness,0) as varchar) end=#{search4}
+	        </if>
+			<if test='search5 != null and search5 != "" '>
+				and case when substring(a.clm_material_order_id,0,3)!='MP' then coalesce(m.clm_material_type,'') else coalesce(h.clm_half_type,'') end=#{search5}
+	        </if>
+			<if test='search6 != null and search6 != "" '>
+				and a.clm_material_id=#{search6}
+	        </if>
+	</select>
+			 
+	<select id="NoMpMaterialList" resultType="HashMap" parameterType="HashMap">
+		select cast(ROW_NUMBER() OVER (ORDER BY substring(a.clm_material_order_id,3) desc, cast(a.clm_order_income_seq as integer) asc , cast(a.clm_income_material_seq as integer) asc, coalesce(cast(a.clm_material_leftover_seq as integer),0) asc) as varchar) num
+			 , w.clm_wood_id, a.clm_material_order_id, a.clm_order_income_seq, a.clm_income_material_seq, a.clm_material_leftover_seq, a.clm_material_id, a.gubun, coalesce(a.clm_load_repository, '') clm_load_repository, coalesce(a.clm_load_repository_position, '') clm_load_repository_position
+			 , TO_CHAR(cast(a.clm_order_count as numeric),'FM999999999') clm_order_count, coalesce(cast(a.clm_order_count as varchar),'0') clm_cube_size, coalesce(a.clm_material_release_gubun,'') clm_material_release_gubun, cast(coalesce(a.clm_holl_size,0) as varchar) clm_holl_size
+			 , case when coalesce(a.clm_material_leftover_seq, '0')='0' then a.clm_material_order_id || '-' || a.clm_order_income_seq || '-' || a.clm_income_material_seq else a.clm_material_order_id || '-' || a.clm_order_income_seq|| '-' || a.clm_income_material_seq || '-' || a.clm_material_leftover_seq  end lotNo	 	
+			 , case when coalesce(a.clm_holl_size,0)=0 then concat(coalesce(t1.clm_code_sub_name, ''),' ', m.clm_material_name)
+					 		else concat(coalesce(t1.clm_code_sub_name, ''),' ', m.clm_material_name,' ∅',coalesce(a.clm_holl_size,0)) 
+					 		end clm_material_name
+			 , coalesce(m.clm_material_type,'') clm_material_type, coalesce(t1.clm_code_sub_name, '') clm_material_type_name
+			 , cast(cast(m.clm_width as numeric) as varchar) clm_material_width
+			 , cast(cast(m.clm_height as numeric) as varchar) clm_material_height
+			 , cast(cast(m.clm_thickness as numeric) as varchar) clm_material_thickness 
+			from(
+			   select x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, '0' clm_material_leftover_seq, x.clm_material_id, x.gubun, coalesce(x.clm_load_repository, '') clm_load_repository, coalesce(x.clm_load_repository_position, '') clm_load_repository_position
+			   		  , cast(coalesce(x.clm_order_count,0) as varchar) clm_order_count, x.clm_material_release_gubun, x.clm_holl_size
+				  from (
+				      select clm_material_order_id, clm_order_income_seq, clm_income_material_seq, clm_material_id, clm_load_repository, clm_load_repository_position, 'O' gubun, clm_order_count, clm_material_release_gubun, clm_holl_size
+				        from tbl_material_order_repository_info
+				       union all  
+				      select clm_material_cut_id, clm_order_income_seq, clm_income_material_seq, clm_material_id, clm_load_repository, clm_load_repository_position, 'C' gubun, clm_order_count, clm_material_release_gubun , clm_holl_size
+				        from tbl_material_cut_repository_info
+				      ) x
+					 where (x.clm_material_order_id || '-' || x.clm_order_income_seq || '-' || x.clm_income_material_seq) not in
+					      (select (y.clm_material_order_id  || '-' || y.clm_order_income_seq || '-' || y.clm_income_material_seq) from tbl_material_leftover_repository_info y where x.clm_material_order_id = y.clm_material_order_id and x.clm_order_income_seq = y.clm_order_income_seq and x.clm_income_material_seq = y.clm_income_material_seq)
+			 	union all
+				(select L1.clm_material_order_id, L1.clm_order_income_seq, L1.clm_income_material_seq, L1.clm_material_leftover_seq 
+				    , case when coalesce(O1.clm_material_id, '') != '' then O1.clm_material_id when coalesce(C1.clm_material_id, '') != '' then C1.clm_material_id end clm_material_id
+				    , case when coalesce(O1.clm_material_id, '') != '' then 'O' when coalesce(C1.clm_material_id, '') != '' then 'C' end gubun
+				    , coalesce(L1.clm_load_repository, '') clm_load_repository, coalesce(L1.clm_load_repository_position, '') clm_load_repository_position
+				    , cast(coalesce(L1.clm_income_cube_size,0) as varchar) clm_order_count, L1.clm_material_release_gubun, L1.clm_holl_size
+				  from tbl_material_leftover_repository_info L1
+				  left outer join tbl_material_order_repository_info O1 on L1.clm_material_order_id = O1.clm_material_order_id and L1.clm_order_income_seq = O1.clm_order_income_seq and L1.clm_income_material_seq = O1.clm_income_material_seq 
+				  left outer join tbl_material_cut_repository_info C1 on L1.clm_material_order_id = C1.clm_material_cut_id and L1.clm_order_income_seq = C1.clm_order_income_seq and L1.clm_income_material_seq = C1.clm_income_material_seq
+				 where L1.clm_material_leftover_seq = (
+		 				select cast(max(cast(clm_material_leftover_seq as integer)) as varchar) clm_material_leftover_seq
+		                   from tbl_material_leftover_repository_info 
+		                    where clm_material_order_id = L1.clm_material_order_id and clm_order_income_seq = L1.clm_order_income_seq and clm_income_material_seq = L1.clm_income_material_seq
+		                   group by clm_material_order_id, clm_order_income_seq, clm_income_material_seq
+		                   )
+		             and substring(L1.clm_material_order_id,0,3)!='MP'      
+				 order by clm_material_order_id, clm_order_income_seq, clm_income_material_seq, clm_material_leftover_seq)	   
+		   ) a
+		   left outer join tbl_material_info m on a.clm_material_id = m.clm_material_id
+		   left outer join tbl_wood_info w on m.clm_wood_id = w.clm_wood_id		   
+		   left outer join tbl_code_sub_info t1 on m.clm_material_type = t1.clm_code_sub_id and t1.clm_code_id = '0001'
+		   left outer join tbl_material_etc_release_info etc on a.clm_material_order_id = etc.clm_material_order_id and a.clm_income_material_seq = etc.clm_income_material_seq  and a.clm_order_income_seq = etc.clm_order_income_seq and a.clm_material_leftover_seq= etc.clm_material_leftover_seq
+		   left outer join (select clm_after_joborder_id ,clm_material_order_id, clm_income_material_seq, clm_order_income_seq,clm_material_leftover_seq from tbl_after_joborder_info where coalesce(clm_process_datetime ,'')='' and clm_gubun ='M') aj on a.clm_material_order_id = aj.clm_material_order_id and a.clm_income_material_seq = aj.clm_income_material_seq and a.clm_order_income_seq = aj.clm_order_income_seq and a.clm_material_leftover_seq = aj.clm_material_leftover_seq
+	   	   where 1=1 and coalesce(cast(a.clm_order_count as numeric),0)>0 and coalesce(a.clm_material_release_gubun,'')='' and coalesce(etc.clm_material_etc_release_id,'')=''  and coalesce(aj.clm_after_joborder_id,'')=''
+		  	 and a.clm_load_repository||a.clm_load_repository_position not in (select clm_code_sub_name||clm_code_sub_value from tbl_code_sub_info where clm_code_id ='0019')
+		  	 and coalesce(a.clm_load_repository,'')!='' and coalesce(a.clm_load_repository_position,'')!='' 
+ 			<if test='search != null and search != "" '>
+			   and (concat(a.clm_material_order_id,'-',a.clm_order_income_seq,'-',a.clm_income_material_seq,'-',a.clm_material_leftover_seq) ilike '%' || trim(#{search})  || '%'
+			   	or concat(coalesce(t1.clm_code_sub_name, ''),' ', m.clm_material_name,' ∅',coalesce(a.clm_holl_size,0)) ilike '%' || trim(#{search})  || '%' )
+			</if>
+			<if test='search2 != null and search2 != "" '>
+			   and a.clm_material_id=#{search2}
+			</if>
+			<if test='width != null and width != "" '>
+				and cast(cast(m.clm_width as numeric) as varchar)=#{width}
+	        </if>
+			<if test='height != null and height != "" '>
+				and cast(cast(m.clm_height as numeric) as varchar)=#{height}
+	        </if>
+			<if test='thickness != null and thickness != "" '>
+				and cast(cast(m.clm_thickness as numeric) as varchar)=#{thickness}
+	        </if>
+	</select>
+	
+	<select id="CutNoMpMaterialList" resultType="HashMap" parameterType="HashMap">
+		select cast(ROW_NUMBER() OVER (ORDER BY substring(a.clm_material_order_id,3) desc, cast(a.clm_order_income_seq as integer) asc , cast(a.clm_income_material_seq as integer) asc, coalesce(cast(a.clm_material_leftover_seq as integer),0) asc) as varchar) num
+			 , w.clm_wood_id, a.clm_material_order_id, a.clm_order_income_seq, a.clm_income_material_seq, a.clm_material_leftover_seq, a.clm_material_id, a.gubun, coalesce(a.clm_load_repository, '') clm_load_repository, coalesce(a.clm_load_repository_position, '') clm_load_repository_position
+			 , TO_CHAR(cast(a.clm_order_count as numeric),'FM999999999') clm_order_count, coalesce(cast(a.clm_order_count as varchar),'0') clm_cube_size, coalesce(a.clm_material_release_gubun,'') clm_material_release_gubun, cast(coalesce(a.clm_holl_size,0) as varchar) clm_holl_size
+			 , case when coalesce(a.clm_material_leftover_seq, '0')='0' then a.clm_material_order_id || '-' || a.clm_order_income_seq || '-' || a.clm_income_material_seq else a.clm_material_order_id || '-' || a.clm_order_income_seq|| '-' || a.clm_income_material_seq || '-' || a.clm_material_leftover_seq  end lotNo	 	
+			 , case when coalesce(a.clm_holl_size,0)=0 then concat(coalesce(t1.clm_code_sub_name, ''),' ', m.clm_material_name)
+					 		else concat(coalesce(t1.clm_code_sub_name, ''),' ', m.clm_material_name,' ∅',coalesce(a.clm_holl_size,0)) 
+					 		end clm_material_name
+			 , coalesce(m.clm_material_type,'') clm_material_type, coalesce(t1.clm_code_sub_name, '') clm_material_type_name
+			 , cast(cast(m.clm_width as numeric) as varchar) clm_material_width
+			 , cast(cast(m.clm_height as numeric) as varchar) clm_material_height
+			 , cast(cast(m.clm_thickness as numeric) as varchar) clm_material_thickness 
+			from(
+			   select x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, '0' clm_material_leftover_seq, x.clm_material_id, x.gubun, coalesce(x.clm_load_repository, '') clm_load_repository, coalesce(x.clm_load_repository_position, '') clm_load_repository_position
+			   		  , cast(coalesce(x.clm_order_count,0) as varchar) clm_order_count, x.clm_material_release_gubun, x.clm_holl_size
+				  from (
+				      select clm_material_order_id, clm_order_income_seq, clm_income_material_seq, clm_material_id, clm_load_repository, clm_load_repository_position, 'O' gubun, clm_order_count, clm_material_release_gubun, clm_holl_size
+				        from tbl_material_order_repository_info
+				       union all  
+				      select clm_material_cut_id, clm_order_income_seq, clm_income_material_seq, clm_material_id, clm_load_repository, clm_load_repository_position, 'C' gubun, clm_order_count, clm_material_release_gubun , clm_holl_size
+				        from tbl_material_cut_repository_info
+				      ) x
+					 where (x.clm_material_order_id || '-' || x.clm_order_income_seq || '-' || x.clm_income_material_seq) not in
+					      (select (y.clm_material_order_id  || '-' || y.clm_order_income_seq || '-' || y.clm_income_material_seq) from tbl_material_leftover_repository_info y where x.clm_material_order_id = y.clm_material_order_id and x.clm_order_income_seq = y.clm_order_income_seq and x.clm_income_material_seq = y.clm_income_material_seq)
+			 	union all
+				(select L1.clm_material_order_id, L1.clm_order_income_seq, L1.clm_income_material_seq, L1.clm_material_leftover_seq 
+				    , case when coalesce(O1.clm_material_id, '') != '' then O1.clm_material_id when coalesce(C1.clm_material_id, '') != '' then C1.clm_material_id end clm_material_id
+				    , case when coalesce(O1.clm_material_id, '') != '' then 'O' when coalesce(C1.clm_material_id, '') != '' then 'C' end gubun
+				    , coalesce(L1.clm_load_repository, '') clm_load_repository, coalesce(L1.clm_load_repository_position, '') clm_load_repository_position
+				    , cast(coalesce(L1.clm_income_cube_size,0) as varchar) clm_order_count, L1.clm_material_release_gubun, L1.clm_holl_size
+				  from tbl_material_leftover_repository_info L1
+				  left outer join tbl_material_order_repository_info O1 on L1.clm_material_order_id = O1.clm_material_order_id and L1.clm_order_income_seq = O1.clm_order_income_seq and L1.clm_income_material_seq = O1.clm_income_material_seq 
+				  left outer join tbl_material_cut_repository_info C1 on L1.clm_material_order_id = C1.clm_material_cut_id and L1.clm_order_income_seq = C1.clm_order_income_seq and L1.clm_income_material_seq = C1.clm_income_material_seq
+				 where L1.clm_material_leftover_seq = (
+		 				select cast(max(cast(clm_material_leftover_seq as integer)) as varchar) clm_material_leftover_seq
+		                   from tbl_material_leftover_repository_info 
+		                    where clm_material_order_id = L1.clm_material_order_id and clm_order_income_seq = L1.clm_order_income_seq and clm_income_material_seq = L1.clm_income_material_seq
+		                   group by clm_material_order_id, clm_order_income_seq, clm_income_material_seq
+		                   )
+		             and substring(L1.clm_material_order_id,0,3)!='MP'      
+				 order by clm_material_order_id, clm_order_income_seq, clm_income_material_seq, clm_material_leftover_seq)	   
+		   ) a
+		   left outer join tbl_material_info m on a.clm_material_id = m.clm_material_id
+		   left outer join tbl_wood_info w on m.clm_wood_id = w.clm_wood_id		   
+		   left outer join tbl_code_sub_info t1 on m.clm_material_type = t1.clm_code_sub_id and t1.clm_code_id = '0001'
+		   left outer join tbl_material_etc_release_info etc on a.clm_material_order_id = etc.clm_material_order_id and a.clm_income_material_seq = etc.clm_income_material_seq  and a.clm_order_income_seq = etc.clm_order_income_seq and a.clm_material_leftover_seq= etc.clm_material_leftover_seq
+		   left outer join (select clm_after_joborder_id ,clm_material_order_id, clm_income_material_seq, clm_order_income_seq,clm_material_leftover_seq from tbl_after_joborder_info where coalesce(clm_process_datetime ,'')='' and clm_gubun ='M') aj on a.clm_material_order_id = aj.clm_material_order_id and a.clm_income_material_seq = aj.clm_income_material_seq and a.clm_order_income_seq = aj.clm_order_income_seq and a.clm_material_leftover_seq = aj.clm_material_leftover_seq
+	   	   where 1=1 and coalesce(cast(a.clm_order_count as numeric),0)>0 and coalesce(a.clm_material_release_gubun,'')='' and coalesce(etc.clm_material_etc_release_id,'')=''  and coalesce(aj.clm_after_joborder_id,'')=''
+		  	 and a.clm_load_repository||a.clm_load_repository_position not in (select clm_code_sub_name||clm_code_sub_value from tbl_code_sub_info where clm_code_id ='0019')
+		  	 and coalesce(a.clm_load_repository,'')!='' and coalesce(a.clm_load_repository_position,'')!='' 
+ 			<if test='search != null and search != "" '>
+			   and (concat(a.clm_material_order_id,'-',a.clm_order_income_seq,'-',a.clm_income_material_seq,'-',a.clm_material_leftover_seq) ilike '%' || trim(#{search})  || '%'
+			   	or concat(coalesce(t1.clm_code_sub_name, ''),' ', m.clm_material_name,' ∅',coalesce(a.clm_holl_size,0)) ilike '%' || trim(#{search})  || '%' )
+			</if>
+			<if test='search2 != null and search2 != "" '>
+			   and a.clm_material_id=#{search2}
+			</if>
+			<if test='width != null and width != "" '>
+				and cast(cast(m.clm_width as numeric) as varchar)=#{width}
+	        </if>
+			<if test='height != null and height != "" '>
+				and cast(cast(m.clm_height as numeric) as varchar)=#{height}
+	        </if>
+			<if test='thickness != null and thickness != "" '>
+				and cast(cast(m.clm_thickness as numeric) as varchar)=#{thickness}
+	        </if>
+			order by case when coalesce(m.clm_width,0)>=2400 or coalesce(m.clm_height,0)>=2400 then 1 else 2 end asc
+	</select>
+		
+	<select id="StockAllMaterial" resultType="HashMap" parameterType="HashMap">
+		select cast(ROW_NUMBER() OVER (ORDER BY a.clm_code_sub_name, cast(a.clm_width as numeric), cast(a.clm_height as numeric) , cast(a.clm_thickness as numeric) asc) as varchar) num, a.clm_material_id, a.clm_material_name,a.clm_material_type, a.clm_half_option_id, a.clm_width, a.clm_height, a.clm_thickness, a.production_stock, a.clm_total_cube_size, a.clm_usable_count
+		  from (
+			 select x.clm_material_id, concat(y.clm_code_sub_name ,' ',x.clm_material_name) clm_material_name,'0000' clm_half_option_id,x.clm_material_type, y.clm_code_sub_name
+			    	, cast(CAST(x.clm_width as numeric) as varchar) clm_width, cast(CAST(x.clm_height as numeric) as varchar) clm_height, cast(cast(x.clm_thickness as numeric) as varchar) clm_thickness  
+			    	, coalesce(cast(RTRIM(TO_CHAR(round(CAST(y2.clm_current_stock as numeric),2),'FM999,999,999.99'),'.') as varchar),'0') as production_stock
+					, case when substring(cast(RTRIM(TO_CHAR(round(cast(((coalesce(CAST(x.clm_width as numeric), 0) * coalesce(CAST(x.clm_height as numeric), 0) * coalesce(CAST(x.clm_thickness as numeric), 0))/3333333)*CAST(coalesce(y2.clm_current_stock,0)-coalesce(z.clm_use_count,0) as numeric) as numeric),2),'FM999,999,999.99'),'.') as varchar),0,2)='.'
+				    		then coalesce(concat('0',cast(RTRIM(TO_CHAR(round(cast(((coalesce(CAST(x.clm_width as numeric), 0) * coalesce(CAST(x.clm_height as numeric), 0) * coalesce(CAST(x.clm_thickness as numeric), 0))/3333333)*CAST(coalesce(y2.clm_current_stock,0)-coalesce(z.clm_use_count,0) as numeric) as numeric),2),'FM999,999,999.99'),'.') as varchar)),'0')
+				    		else coalesce(cast(RTRIM(TO_CHAR(round(cast(((coalesce(CAST(x.clm_width as numeric), 0) * coalesce(CAST(x.clm_height as numeric), 0) * coalesce(CAST(x.clm_thickness as numeric), 0))/3333333)* CAST(coalesce(y2.clm_current_stock,0)-coalesce(z.clm_use_count,0) as numeric) as numeric),2),'FM999,999,999.99'),'.') as varchar),'0')
+				    		end clm_total_cube_size
+					,cast(RTRIM(TO_CHAR(TRUNC(CAST(coalesce(y2.clm_current_stock,0)-coalesce(z.clm_use_count,0) as numeric),2),'FM999,999,999.99'),'.') as varchar) clm_usable_count
+					from tbl_material_info x
+				  	  left outer join tbl_code_sub_info y on x.clm_material_type =y.clm_code_sub_id and y.clm_code_id ='0001'
+					  left outer join tbl_material_stock_info y2 on x.clm_material_id = y2.clm_material_id and clm_warehouse_yn = 'N'		
+					  left outer join (
+						 	 select a.clm_material_id,a.clm_gubun,(sum(coalesce(t.clm_cut_use_count,0))+sum(coalesce(hs.clm_material_use_count,0))+sum(coalesce(pm.clm_material_use_size,0))+sum(coalesce(am.clm_product_count ,0))+coalesce(co.clm_material_count,0)) clm_use_count
+			 		 		from (
+								select 'M' clm_gubun,clm_material_order_id,clm_income_material_seq,clm_order_income_seq,'0' clm_material_leftover_seq, clm_material_id from tbl_material_order_repository_info
+								union all
+								select 'M' clm_gubun,clm_material_cut_id,clm_income_material_seq,clm_order_income_seq,'0' clm_material_leftover_seq, clm_material_id  from tbl_material_cut_repository_info g
+								union all							
+								select 'H' clm_gubun,clm_half_order_id clm_material_order_id,clm_half_material_seq clm_income_material_seq,clm_half_income_seq clm_order_income_seq, '0' clm_material_leftover_seq, clm_half_id clm_material_id from tbl_material_half_repository_info
+								union all
+								select case when substring(x.clm_material_order_id,0,3)!='MP' then 'M' else 'H' end clm_gubun, x.clm_material_order_id,x.clm_income_material_seq,x.clm_order_income_seq, x.clm_material_leftover_seq, case when substring(x.clm_material_order_id ,0,3)='MO' then y.clm_material_id when substring(x.clm_material_order_id ,0,3)='MC' then z.clm_material_id else h.clm_half_id end clm_material_id 
+								from tbl_material_leftover_repository_info x
+								left outer join tbl_material_order_repository_info y on x.clm_material_order_id = y.clm_material_order_id and x.clm_income_material_seq = y.clm_income_material_seq and x.clm_order_income_seq = y.clm_order_income_seq
+								left outer join tbl_material_cut_repository_info z on x.clm_material_order_id = z.clm_material_cut_id and x.clm_income_material_seq = z.clm_income_material_seq and x.clm_order_income_seq = z.clm_order_income_seq
+								left outer join tbl_material_half_repository_info h on x.clm_material_order_id = h.clm_half_order_id and x.clm_income_material_seq = h.clm_half_material_seq and x.clm_order_income_seq = h.clm_half_income_seq
+							) a
+						   left outer join (
+						   		select * from (
+						   				select clm_material_id,x.clm_material_order_id,x.clm_order_income_seq,x.clm_income_material_seq, x.clm_material_leftover_seq 
+						   				, case when coalesce (x.clm_multi_cut_joborder_id,'')!='' then coalesce(s1.use_count,0) else coalesce(sum(x.clm_material_total_count),0) end clm_cut_use_count 
+										from tbl_cut_joborder_info x 
+						   				left outer join (
+												  select x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, '0' clm_material_leftover_seq, x.clm_order_count, x.clm_holl_size, coalesce(x.clm_order_count,0) - coalesce(z.clm_income_cube_size,0) use_count
+												  from tbl_material_order_repository_info x
+												  , tbl_cut_joborder_info c, tbl_material_leftover_repository_info z
+												  where x.clm_material_order_id = c.clm_material_order_id and x.clm_order_income_seq = c.clm_order_income_seq and x.clm_income_material_seq =c.clm_income_material_seq
+												  and x.clm_material_order_id = z.clm_material_order_id and x.clm_order_income_seq = z.clm_order_income_seq and x.clm_income_material_seq = z.clm_income_material_seq and z.clm_material_leftover_seq ='1'
+												  union all
+												  select x.clm_material_cut_id as clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, '0' clm_material_leftover_seq, x.clm_order_count, x.clm_holl_size, coalesce(x.clm_order_count,0) - coalesce(z.clm_income_cube_size,0) use_count
+												  from tbl_material_cut_repository_info x, tbl_material_leftover_repository_info z
+												  ,tbl_cut_joborder_info c
+												  where x.clm_material_cut_id = c.clm_material_order_id and x.clm_order_income_seq = c.clm_order_income_seq and x.clm_income_material_seq =c.clm_income_material_seq
+												  and x.clm_material_cut_id = z.clm_material_order_id and x.clm_order_income_seq = z.clm_order_income_seq and x.clm_income_material_seq = z.clm_income_material_seq and z.clm_material_leftover_seq ='1'
+												  union all 	 
+												  select x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, x.clm_material_leftover_seq, x.clm_income_cube_size, x.clm_holl_size, coalesce(x.clm_income_cube_size,0) - coalesce(z.clm_income_cube_size,0) use_count
+												  from tbl_material_leftover_repository_info x
+												  left outer join tbl_material_leftover_repository_info z on x.clm_material_order_id = z.clm_material_order_id and x.clm_order_income_seq = z.clm_order_income_seq and x.clm_income_material_seq = cast(cast(z.clm_material_leftover_seq as integer)+1 as varchar)
+											)s1 on x.clm_material_order_id= s1.clm_material_order_id and x.clm_order_income_seq= s1.clm_order_income_seq and x.clm_income_material_seq= s1.clm_income_material_seq and x.clm_material_leftover_seq =s1.clm_material_leftover_seq and coalesce(x.clm_multi_cut_joborder_id,'')!=''
+										where coalesce( x.clm_cut_joborder_datetime,'')=''
+							   				group by clm_material_id, x.clm_material_order_id,x.clm_order_income_seq,x.clm_income_material_seq, x.clm_material_leftover_seq, x.clm_multi_cut_joborder_id, s1.use_count
+						   			) a
+						   			where clm_cut_use_count >0
+					   			) t on a.clm_material_order_id = t.clm_material_order_id and a.clm_income_material_seq = t.clm_income_material_seq  and a.clm_order_income_seq = t.clm_order_income_seq and a.clm_material_leftover_seq= t.clm_material_leftover_seq
+						   left outer join (
+						   			select * from tbl_half_joborder_sub_info hs ,tbl_half_joborder_info hj 
+						   			where coalesce(hj.clm_half_joborder_datetime,'')='' and hs.clm_half_joborder_id = hj.clm_half_joborder_id
+						   			)hs on a.clm_material_order_id = hs.clm_material_order_id and a.clm_income_material_seq = hs.clm_income_material_seq and a.clm_order_income_seq = hs.clm_order_income_seq and a.clm_material_id=hs.clm_material_id  and a.clm_material_leftover_seq= hs.clm_material_leftover_seq
+						   left outer join (
+							   		select * from tbl_product_material_mapping_list pm ,tbl_joborder_info j 
+							   		where j.clm_joborder_id = pm.clm_joborder_id and j.clm_client_order_id = pm.clm_client_order_id and coalesce(j.clm_assembly_start_datetime ,'')='' 
+							   		) pm on a.clm_material_order_id = pm.clm_material_order_id and a.clm_income_material_seq = pm.clm_income_material_seq  and a.clm_order_income_seq = pm.clm_order_income_seq and a.clm_material_leftover_seq= pm.clm_material_leftover_seq
+						   left outer join (
+					      			select coalesce(mm.clm_product_count,0) clm_product_count, x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, x.clm_material_leftover_seq, x.clm_product_id 
+							      	from tbl_after_joborder_info x
+							      	left outer join (
+	      									select x.clm_after_joborder_id ,x.clm_process_seq , max(x.clm_product_count) clm_product_count ,x.clm_material_order_id, x.clm_income_material_seq, x.clm_order_income_seq, x.clm_material_leftover_seq
+											from tbl_after_joborder_info x
+											where clm_gubun ='M'
+											group by x.clm_after_joborder_id ,x.clm_process_seq,x.clm_material_order_id, x.clm_income_material_seq, x.clm_order_income_seq, x.clm_material_leftover_seq
+	      									) mm on x.clm_material_order_id = mm.clm_material_order_id and x.clm_order_income_seq = mm.clm_order_income_seq and x.clm_income_material_seq= mm.clm_income_material_seq and x.clm_material_leftover_seq= mm.clm_material_leftover_seq
+							      	where x.clm_gubun='M' and coalesce(x.clm_process_datetime,'') = ''
+							      	group by x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, x.clm_material_leftover_seq, x.clm_product_id, mm.clm_product_count
+							      	) am on a.clm_material_order_id = am.clm_material_order_id and a.clm_income_material_seq = am.clm_income_material_seq  and a.clm_order_income_seq = am.clm_order_income_seq and a.clm_material_leftover_seq= am.clm_material_leftover_seq
+                    		left outer join (
+							 			select sum(jm.clm_material_count)-coalesce((select coalesce(sum(y.clm_material_release_count),0) from tbl_material_release_info y ,tbl_release_info z where y.clm_release_id = z.clm_release_id and coalesce(z.clm_release_yn,'N') ='Y' and y.clm_material_id = jm.clm_material_id group by jm.clm_material_id),0) clm_material_count,jm.clm_material_id 
+							 			from tbl_joborder_material_list jm  
+							 			left outer join (
+								 			select sum(clm_material_release_count ) clm_material_release_count, x.clm_material_id
+								 				from tbl_material_release_info x, tbl_release_info y 
+												where x.clm_release_id =y.clm_release_id and y.clm_release_yn ='Y'
+											group by x.clm_material_id
+											) y on jm.clm_material_id = y.clm_material_id
+										group by jm.clm_material_id
+										) co on a.clm_material_id= co.clm_material_id
+							where 1=1 and a.clm_gubun='M'
+						   	and coalesce(a.clm_material_id,'')!='' 
+						  group by a.clm_material_id,co.clm_material_count,a.clm_gubun
+			 	 	)z on x.clm_material_id =z.clm_material_id
+			 	 	where 1=1
+			 group by x.clm_material_id,y.clm_code_sub_name,x.clm_material_name,x.clm_safety_stock,x.clm_width,x.clm_height,x.clm_thickness,y2.clm_current_stock,z.clm_use_count
+			union all 
+			select x.clm_half_id, concat(z2.clm_code_sub_name,' ',x.clm_half_product_name) as clm_half_product_name,x.clm_half_option_id, x.clm_half_type,z2.clm_code_sub_name
+					, cast(CAST(x.clm_width as numeric) as varchar) clm_width, cast(CAST(x.clm_height as numeric) as varchar) clm_height, cast(CAST(x.clm_thickness as numeric) as varchar) clm_thickness
+					, coalesce(cast(TO_CHAR(cast(y.clm_current_stock as numeric),'FM999,999,999') as varchar), '0') as half_product_stock
+					, case when substring(cast(RTRIM(TO_CHAR(round(cast(((coalesce(CAST(x.clm_width as numeric), 0) * coalesce(CAST(x.clm_height as numeric), 0) * coalesce(CAST(x.clm_thickness as numeric), 0))/3333333)*CAST(coalesce(y.clm_current_stock,0)-coalesce(z.clm_use_count,0) as numeric) as numeric),2),'FM999,999,999.99'),'.') as varchar),0,2)='.'
+				    		then coalesce(concat('0',cast(RTRIM(TO_CHAR(round(cast(((coalesce(CAST(x.clm_width as numeric), 0) * coalesce(CAST(x.clm_height as numeric), 0) * coalesce(CAST(x.clm_thickness as numeric), 0))/3333333)*CAST(coalesce(y.clm_current_stock,0)-coalesce(z.clm_use_count,0) as numeric) as numeric),2),'FM999,999,999.99'),'.') as varchar)),'0')
+				    		else coalesce(cast(RTRIM(TO_CHAR(round(cast(((coalesce(CAST(x.clm_width as numeric), 0) * coalesce(CAST(x.clm_height as numeric), 0) * coalesce(CAST(x.clm_thickness as numeric), 0))/3333333)* CAST(coalesce(y.clm_current_stock,0)-coalesce(z.clm_use_count,0) as numeric) as numeric),2),'FM999,999,999.99'),'.') as varchar),'0')
+				    		end clm_total_cube_size
+					, cast(TO_CHAR(TRUNC(CAST(coalesce(y.clm_current_stock,0)-coalesce(z.clm_use_count,0) as numeric),2),'FM999,999,999')as varchar) clm_usable_count
+				from tbl_material_half_info x
+				left outer join tbl_code_sub_info z2 on x.clm_half_type =z2.clm_code_sub_id and z2.clm_code_id ='0001'
+				left outer join tbl_half_product_stock_info y on x.clm_half_id = y.clm_half_id and y.clm_warehouse_yn = 'N'
+				left outer join (
+					 	 select a.clm_material_id,a.clm_gubun,(sum(coalesce(t.clm_cut_use_count,0))+sum(coalesce(hs.clm_material_use_count,0))+sum(coalesce(pm.clm_material_use_size,0))+sum(coalesce(am.clm_product_count ,0))+coalesce(co.clm_material_count,0)) clm_use_count
+			 		 		from (
+								select 'M' clm_gubun,clm_material_order_id,clm_income_material_seq,clm_order_income_seq,'0' clm_material_leftover_seq, clm_material_id from tbl_material_order_repository_info
+								union all
+								select 'M' clm_gubun,clm_material_cut_id,clm_income_material_seq,clm_order_income_seq,'0' clm_material_leftover_seq, clm_material_id  from tbl_material_cut_repository_info g
+								union all							
+								select 'H' clm_gubun,clm_half_order_id clm_material_order_id,clm_half_material_seq clm_income_material_seq,clm_half_income_seq clm_order_income_seq, '0' clm_material_leftover_seq, clm_half_id clm_material_id from tbl_material_half_repository_info
+								union all
+								select case when substring(x.clm_material_order_id,0,3)!='MP' then 'M' else 'H' end clm_gubun, x.clm_material_order_id,x.clm_income_material_seq,x.clm_order_income_seq, x.clm_material_leftover_seq, case when substring(x.clm_material_order_id ,0,3)='MO' then y.clm_material_id when substring(x.clm_material_order_id ,0,3)='MC' then z.clm_material_id else h.clm_half_id end clm_material_id 
+								from tbl_material_leftover_repository_info x
+								left outer join tbl_material_order_repository_info y on x.clm_material_order_id = y.clm_material_order_id and x.clm_income_material_seq = y.clm_income_material_seq and x.clm_order_income_seq = y.clm_order_income_seq
+								left outer join tbl_material_cut_repository_info z on x.clm_material_order_id = z.clm_material_cut_id and x.clm_income_material_seq = z.clm_income_material_seq and x.clm_order_income_seq = z.clm_order_income_seq
+								left outer join tbl_material_half_repository_info h on x.clm_material_order_id = h.clm_half_order_id and x.clm_income_material_seq = h.clm_half_material_seq and x.clm_order_income_seq = h.clm_half_income_seq
+							) a
+						   left outer join (
+						   		select * from (
+						   				select clm_material_id,x.clm_material_order_id,x.clm_order_income_seq,x.clm_income_material_seq, x.clm_material_leftover_seq 
+						   				, case when coalesce (x.clm_multi_cut_joborder_id,'')!='' then coalesce(s1.use_count,0) else coalesce(sum(x.clm_material_total_count),0) end clm_cut_use_count 
+										from tbl_cut_joborder_info x 
+						   				left outer join (
+												  select x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, '0' clm_material_leftover_seq, x.clm_order_count, x.clm_holl_size, coalesce(x.clm_order_count,0) - coalesce(z.clm_income_cube_size,0) use_count
+												  from tbl_material_order_repository_info x
+												  , tbl_cut_joborder_info c, tbl_material_leftover_repository_info z
+												  where x.clm_material_order_id = c.clm_material_order_id and x.clm_order_income_seq = c.clm_order_income_seq and x.clm_income_material_seq =c.clm_income_material_seq
+												  and x.clm_material_order_id = z.clm_material_order_id and x.clm_order_income_seq = z.clm_order_income_seq and x.clm_income_material_seq = z.clm_income_material_seq and z.clm_material_leftover_seq ='1'
+												  union all
+												  select x.clm_material_cut_id as clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, '0' clm_material_leftover_seq, x.clm_order_count, x.clm_holl_size, coalesce(x.clm_order_count,0) - coalesce(z.clm_income_cube_size,0) use_count
+												  from tbl_material_cut_repository_info x, tbl_material_leftover_repository_info z
+												  ,tbl_cut_joborder_info c
+												  where x.clm_material_cut_id = c.clm_material_order_id and x.clm_order_income_seq = c.clm_order_income_seq and x.clm_income_material_seq =c.clm_income_material_seq
+												  and x.clm_material_cut_id = z.clm_material_order_id and x.clm_order_income_seq = z.clm_order_income_seq and x.clm_income_material_seq = z.clm_income_material_seq and z.clm_material_leftover_seq ='1'
+												  union all 	 
+												  select x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, x.clm_material_leftover_seq, x.clm_income_cube_size, x.clm_holl_size, coalesce(x.clm_income_cube_size,0) - coalesce(z.clm_income_cube_size,0) use_count
+												  from tbl_material_leftover_repository_info x
+												  left outer join tbl_material_leftover_repository_info z on x.clm_material_order_id = z.clm_material_order_id and x.clm_order_income_seq = z.clm_order_income_seq and x.clm_income_material_seq = cast(cast(z.clm_material_leftover_seq as integer)+1 as varchar)
+											)s1 on x.clm_material_order_id= s1.clm_material_order_id and x.clm_order_income_seq= s1.clm_order_income_seq and x.clm_income_material_seq= s1.clm_income_material_seq and x.clm_material_leftover_seq =s1.clm_material_leftover_seq and coalesce(x.clm_multi_cut_joborder_id,'')!=''
+										where coalesce( x.clm_cut_joborder_datetime,'')=''
+							   				group by clm_material_id, x.clm_material_order_id,x.clm_order_income_seq,x.clm_income_material_seq, x.clm_material_leftover_seq, x.clm_multi_cut_joborder_id, s1.use_count
+						   			) a
+						   			where clm_cut_use_count >0
+					   			) t on a.clm_material_order_id = t.clm_material_order_id and a.clm_income_material_seq = t.clm_income_material_seq  and a.clm_order_income_seq = t.clm_order_income_seq and a.clm_material_leftover_seq= t.clm_material_leftover_seq
+						   left outer join (
+						   			select * from tbl_half_joborder_sub_info hs ,tbl_half_joborder_info hj 
+						   			where coalesce(hj.clm_half_joborder_datetime,'')='' and hs.clm_half_joborder_id = hj.clm_half_joborder_id
+						   			)hs on a.clm_material_order_id = hs.clm_material_order_id and a.clm_income_material_seq = hs.clm_income_material_seq and a.clm_order_income_seq = hs.clm_order_income_seq and a.clm_material_id=hs.clm_material_id  and a.clm_material_leftover_seq= hs.clm_material_leftover_seq
+						   left outer join (
+							   		select * from tbl_product_material_mapping_list pm ,tbl_joborder_info j 
+							   		where j.clm_joborder_id = pm.clm_joborder_id and j.clm_client_order_id = pm.clm_client_order_id and coalesce(j.clm_assembly_start_datetime ,'')='' 
+							   		) pm on a.clm_material_order_id = pm.clm_material_order_id and a.clm_income_material_seq = pm.clm_income_material_seq  and a.clm_order_income_seq = pm.clm_order_income_seq and a.clm_material_leftover_seq= pm.clm_material_leftover_seq
+						   left outer join (
+					      			select coalesce(mm.clm_product_count,0) clm_product_count, x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, x.clm_material_leftover_seq, x.clm_product_id 
+							      	from tbl_after_joborder_info x
+							      	left outer join (
+	      									select x.clm_after_joborder_id ,x.clm_process_seq , max(x.clm_product_count) clm_product_count ,x.clm_material_order_id, x.clm_income_material_seq, x.clm_order_income_seq, x.clm_material_leftover_seq
+											from tbl_after_joborder_info x
+											where clm_gubun ='M'
+											group by x.clm_after_joborder_id ,x.clm_process_seq,x.clm_material_order_id, x.clm_income_material_seq, x.clm_order_income_seq, x.clm_material_leftover_seq
+	      									) mm on x.clm_material_order_id = mm.clm_material_order_id and x.clm_order_income_seq = mm.clm_order_income_seq and x.clm_income_material_seq= mm.clm_income_material_seq and x.clm_material_leftover_seq= mm.clm_material_leftover_seq
+							      	where x.clm_gubun='M' and coalesce(x.clm_process_datetime,'') = ''
+							      	group by x.clm_material_order_id, x.clm_order_income_seq, x.clm_income_material_seq, x.clm_material_leftover_seq, x.clm_product_id, mm.clm_product_count
+							      	) am on a.clm_material_order_id = am.clm_material_order_id and a.clm_income_material_seq = am.clm_income_material_seq  and a.clm_order_income_seq = am.clm_order_income_seq and a.clm_material_leftover_seq= am.clm_material_leftover_seq
+                    		left outer join (
+							 			select sum(jm.clm_material_count)-coalesce((select coalesce(sum(y.clm_material_release_count),0) from tbl_material_release_info y ,tbl_release_info z where y.clm_release_id = z.clm_release_id and coalesce(z.clm_release_yn,'N') ='Y' and y.clm_material_id = jm.clm_material_id group by jm.clm_material_id),0) clm_material_count,jm.clm_material_id 
+							 			from tbl_joborder_material_list jm  
+							 			left outer join (
+								 			select sum(clm_material_release_count ) clm_material_release_count, x.clm_material_id
+								 				from tbl_material_release_info x, tbl_release_info y 
+												where x.clm_release_id =y.clm_release_id and y.clm_release_yn ='Y'
+											group by x.clm_material_id
+											) y on jm.clm_material_id = y.clm_material_id
+										group by jm.clm_material_id
+										) co on a.clm_material_id= co.clm_material_id
+							where 1=1 and a.clm_gubun='H'
+						   	and coalesce(a.clm_material_id,'')!='' 
+						  group by a.clm_material_id,co.clm_material_count,a.clm_gubun
+		 	 	)z on x.clm_half_id =z.clm_material_id
+			)a where 1=1
+		 <if test='search != null and search != "" '>
+		   and (a.clm_material_id ilike '%' || trim(#{search})  || '%'
+		    or  a.clm_material_name ilike '%' || trim(#{search}) || '%')
+		 </if>
+		 <if test='search == null or search == "" '>
+		   and cast(replace(a.clm_usable_count,',','') as numeric)>0
+		 </if>
+		 <if test='search2 != null and search2 != "" '>
+		   and (a.clm_material_type =#{search2})
+		 </if>
+		 <if test='halfoption1 != null and halfoption1 != "" '>
+		   and (a.clm_half_option_id like '%0001%')
+		 </if>
+		 <if test='halfoption2 != null and halfoption2 != "" '>
+		   and (a.clm_half_option_id like '%0002%')
+		 </if>
+		<if test='halfoption3 != null and halfoption3 != "" '>
+		   and (a.clm_half_option_id like '%0003%')
+		 </if>
+		 <if test='halfoption4 != null and halfoption4 != "" '>
+		   and (a.clm_half_option_id like '%0004%')
+		 </if>
+		<if test='halfoption5 != null and halfoption5 != "" '>
+		   and (a.clm_half_option_id like '%0005%')
+		 </if>
+		 <if test='halfoption6 != null and halfoption6 != "" '>
+		   and (a.clm_half_option_id like '%0006%')
+		 </if>		
+		 order by a.clm_code_sub_name, cast(a.clm_width as numeric), cast(a.clm_height as numeric) , cast(a.clm_thickness as numeric)
+	</select>
+	
+	<select id="GetReleasableCount" resultType="String" parameterType="HashMap">
+		select cast(coalesce(sum(cast(clm_release_enable_count as numeric)) ,0) as varchar)	from(
+			select cast(coalesce(cast(
+			  	    				case when y.clm_client_order_id='CO000000' and (select count(*) from tbl_product_material_mapping_list where clm_joborder_id= j.clm_joborder_id )=0 then (select clm_product_count from tbl_joborder_product_list where clm_client_order_id='CO000000' and clm_joborder_id = j.clm_joborder_id) 
+			  	    				else coalesce(cast(y.clm_current_produce_count as integer),0)  end 
+			  	    				as integer),0) -coalesce(cast(rp.clm_product_release_count as integer),0)-coalesce(etp.clm_product_etc_release_count,0) -coalesce(cast(ap.clm_poor_count as numeric),0)-coalesce(cast(af.clm_product_count as numeric),0) as varchar)
+					  	    clm_release_enable_count  	
+			    from  (
+					    select  x.clm_client_order_id, x.clm_joborder_id, x.clm_product_id,'P' clm_gubun, x.clm_joborder_product_seq, coalesce(d.clm_produce_count,0) clm_current_produce_count,j.clm_delivery_request_datetime clm_request_delivery_datetime
+					    , '' clm_material_order_id , '' clm_order_income_seq ,'' clm_income_material_seq ,'' clm_material_leftover_seq 
+					    from tbl_joborder_product_list x
+					    left outer join tbl_joborder_info j on x.clm_joborder_id = j.clm_joborder_id 
+					    left outer join tbl_product_material_mapping_list y on x.clm_client_order_id = y.clm_client_order_id and x.clm_product_id = y.clm_product_id and x.clm_joborder_id = y.clm_joborder_id
+				    	left outer join (select sum(clm_produce_count) clm_produce_count,clm_joborder_id from tbl_joborder_complete_list group by clm_joborder_id ) d on x.clm_joborder_id = d.clm_joborder_id 
+				    	where coalesce(j.clm_assembly_start_datetime ,'')!='' and coalesce(d.clm_produce_count,0)>0 and x.clm_client_order_id ='CO000000'
+				    	) y
+		   		left outer join (
+			    	select clm_joborder_id, clm_client_order_id, sum(clm_product_release_count) clm_product_release_count, clm_product_id from tbl_product_release_info group by clm_joborder_id, clm_client_order_id, clm_product_id
+			   	 ) rp on y.clm_joborder_id =rp.clm_joborder_id and y.clm_product_id = rp.clm_product_id 
+			    left outer join (
+							   	select coalesce(cast(trunc(cast(sum(a.clm_poor_count) as numeric)) as varchar),'0') clm_poor_count, a.clm_joborder_id , a.clm_client_order_id 
+								   	from(
+										select coalesce(sum(cast(x.clm_poor_count as numeric)),0)/ coalesce(cast(y.clm_count as numeric),1) clm_poor_count, x.clm_joborder_id , x.clm_client_order_id 
+										from tbl_after_joborder_info x
+										left outer join (select count(*) clm_count,clm_after_joborder_id,clm_process_seq from tbl_after_joborder_info group by clm_after_joborder_id,clm_process_seq) y on x.clm_after_joborder_id= y.clm_after_joborder_id and x.clm_process_seq=y.clm_process_seq
+										where x.clm_gubun ='P' 
+										and x.clm_after_joborder_id ||'-'||x.clm_process_seq not in (select clm_after_joborder_id ||'-'||clm_process_seq from tbl_after_joborder_info where clm_gubun ='P' and coalesce(clm_process_datetime,'')='')
+										group by x.clm_after_joborder_id, x.clm_process_seq,y.clm_count, x.clm_joborder_id , x.clm_client_order_id
+										) a 
+								group by a.clm_joborder_id , a.clm_client_order_id 
+			   	) pr on y.clm_joborder_id=pr.clm_joborder_id and y.clm_client_order_id=pr.clm_client_order_id
+			    left outer join tbl_joborder_info j on y.clm_client_order_id = j.clm_client_order_id and y.clm_joborder_id = j.clm_joborder_id
+			    left outer join (
+			    select sum(coalesce(cast(clm_product_etc_release_count as integer),0)) clm_product_etc_release_count,clm_client_order_id ,clm_joborder_id from tbl_joborder_etc_release_product_list group by clm_client_order_id ,clm_joborder_id
+			    ) etp on j.clm_client_order_id = etp.clm_client_order_id and j.clm_joborder_id =etp.clm_joborder_id
+			    left outer join tbl_user_info u on j.clm_delivery_logis_operator = u.clm_user_id
+			    left outer join tbl_joborder_complete_list jc on y.clm_joborder_id=jc.clm_joborder_id and j.clm_client_order_id=jc.clm_client_order_id
+				 left outer join tbl_product_info p on y.clm_product_id =p.clm_product_id
+			    left outer join tbl_client_order_info x on y.clm_client_order_id =x.clm_client_order_id	
+			    left outer join tbl_client_info c on x.clm_client_id =c.clm_client_id	
+				left outer join (
+		   			select clm_joborder_id, sum(clm_poor_count) clm_poor_count
+						from(
+							select x.clm_after_joborder_id, x.clm_process_seq, x.clm_joborder_id, x.clm_product_id, x.clm_poor_count
+							from tbl_after_joborder_info x 
+							left outer join (select count(*) count,clm_after_joborder_id,clm_process_seq from tbl_after_joborder_info where coalesce(clm_process_datetime,'')='' group by clm_after_joborder_id,clm_process_seq ) y on x.clm_after_joborder_id= y.clm_after_joborder_id and x.clm_process_seq=y.clm_process_seq 
+							where coalesce(x.clm_process_datetime,'')!='' and clm_gubun='P' and x.clm_poor_count>0 and coalesce(y.count,0)=0
+							group by x.clm_product_id, x.clm_process_seq, x.clm_joborder_id, x.clm_poor_count, x.clm_after_joborder_id
+						) a
+						group by clm_joborder_id
+					) ap on y.clm_joborder_id =ap.clm_joborder_id			
+				left outer join (
+			   		select clm_joborder_id, sum(clm_product_count)   clm_product_count
+						from(
+							select clm_after_joborder_id,clm_process_seq,clm_joborder_id,clm_product_id,clm_product_count  
+							from tbl_after_joborder_info 
+							where coalesce(clm_process_datetime,'')='' and clm_gubun='P'
+							group by clm_product_id,clm_process_seq,clm_joborder_id,clm_product_count,clm_after_joborder_id
+						) a
+						group by clm_joborder_id
+					) af on y.clm_joborder_id =af.clm_joborder_id
+		 		where 1=1 and clm_product_name like '%' || #{product_name2} ||'%'
+				group by ap.clm_poor_count ,af.clm_product_count, etp.clm_product_etc_release_count,pr.clm_poor_count,rp.clm_product_release_count,y.clm_gubun,y.clm_order_income_seq,y.clm_income_material_seq,y.clm_material_leftover_seq,y.clm_client_order_id,j.clm_joborder_id,c.clm_client_name
+				,y.clm_product_id,p.clm_product_name,x.clm_order_datetime,x.clm_client_id,y.clm_current_produce_count,j.clm_delivery_logis_operator
+				,y.clm_material_order_id,y.clm_request_delivery_datetime
+			)a
+	</select>
+	
+	<select id="StockAllPayment" resultType="HashMap" parameterType="HashMap">
+		 select clm_client_name
+			   , clm_product_name
+			   , coalesce(cast(TO_CHAR(clm_product_count::numeric, 'FM999,999,999') as varchar), '') clm_product_count
+			   , coalesce(cast(TO_CHAR(clm_release_enable_count2::numeric, 'FM999,999,999') as varchar), '') clm_release_enable_count2
+			   -- 황영철 수정 천단위 넘어가면 Controller에서 쉼표때문에 오류남. 230719
+			   --, coalesce(cast(clm_release_enable_count2 as varchar), '') clm_release_enable_count2
+			   , case when coalesce(clm_request_delivery_datetime,'') =substring(cast(now() as varchar),0,11) then '당일출고'
+		              else coalesce(clm_request_delivery_datetime,'')
+		    		  end clm_request_delivery_datetime
+			   , cast(COUNT(clm_request_delivery_datetime) OVER (PARTITION by clm_request_delivery_datetime) as varchar) rowspan 
+			   , cast(COUNT(clm_client_name) OVER (PARTITION by clm_request_delivery_datetime, clm_client_name) as varchar) clientspan  
+			   , (case when clm_product_count = clm_release_enable_count then ''
+			   when cast(clm_release_enable_count as integer) = 0 then '출하완료'
+			   else '부분출하' end) clm_product_etc
+			   , today_yn, clm_m_p_gubun, clm_product_id
+			   , clm_request_delivery_datetime, 'N' select_yn, clm_client_id, cast(coalesce(stock_count,0) as varchar) stock_count
+         from (
+         select clm_client_name, clm_product_name, sum(clm_product_count) clm_product_count, sum(clm_release_enable_count) clm_release_enable_count, sum(clm_release_enable_count2) clm_release_enable_count2, sum(stock_count) stock_count,clm_request_delivery_datetime, max(today_yn) today_yn, clm_width, clm_height, clm_thickness, clm_m_p_gubun, clm_product_id, clm_client_id
+	         from
+	         (select case when y.clm_gubun='M' then
+			                        (case when coalesce(y.clm_material_leftover_seq ,'0')!='0'
+			                        then (y.clm_material_order_id || '-' || y.clm_order_income_seq|| '-' || y.clm_income_material_seq || '-' || y.clm_material_leftover_seq)
+			                        else (y.clm_material_order_id || '-' || y.clm_order_income_seq|| '-' || y.clm_income_material_seq) end)
+			                     else coalesce(j.clm_joborder_id,'') end lotno
+			                , case when coalesce(y.clm_client_order_id,'')!='CO000000' then coalesce(c.clm_client_name,'') else '재고용' end clm_client_name      
+			                , case when coalesce(y.clm_gubun,'')='P' then '생산' else '자재' end clm_m_p_gubun
+			                , case when y.clm_gubun ='P' then coalesce(p.clm_product_name,'')  
+			                       else case when coalesce(y.clm_material_order_id,'')='' then case when y.clm_half_option_id='' then concat(coalesce(s.clm_code_sub_name, ''),' ', t.clm_material_name) when y.clm_half_option_id='0007' then concat(coalesce(s.clm_code_sub_name, ''),' ', t.clm_material_name,'(열처리)') when y.clm_half_option_id like '%0007%' then (coalesce(m3.clm_code_sub_name, '') || ' ' ||  split_part(m4.clm_half_product_name::varchar,')',1) || ',열처리)') else (coalesce(m3.clm_code_sub_name, '') || ' ' ||  m4.clm_half_product_name) end  || case when coalesce(y.clm_holl_size,0) >0 then ' ∅' || cast(y.clm_holl_size as varchar) else '' end
+			                       			 when substring(y.clm_material_order_id ,0,3)!='MP' and coalesce(coalesce(r3.clm_holl_size,r.clm_holl_size),0)=0 
+				                             then concat(coalesce(s.clm_code_sub_name, ''),' ', t.clm_material_name)
+				                             when substring(y.clm_material_order_id ,0,3)='MP' and coalesce(coalesce(r3.clm_holl_size,r.clm_holl_size),0)=0 then concat(coalesce(m3.clm_code_sub_name, ''),' ', m4.clm_half_product_name)
+				                             when substring(y.clm_material_order_id ,0,3)!='MP' and coalesce(coalesce(r3.clm_holl_size,r.clm_holl_size),0)!=0
+				                             then concat(coalesce(s.clm_code_sub_name, ''),' ', t.clm_material_name,' ∅',coalesce(coalesce(r3.clm_holl_size,r.clm_holl_size),0))
+				                             else concat(coalesce(m3.clm_code_sub_name, ''),' ', m4.clm_half_product_name,' ∅',coalesce(coalesce(r3.clm_holl_size,r.clm_holl_size),0)) 
+				                             end || case when coalesce(aj.clm_after_joborder_id ,'')!='' then '(열처리)' else '' end
+			                     end clm_product_name
+			                , case when y.clm_gubun ='P' then coalesce(p.clm_width,0)  
+			                       else case when substring(y.clm_material_order_id ,0,3)!='MP' then coalesce(t.clm_width,0) 
+				                             when substring(y.clm_material_order_id ,0,3)='MP'  then coalesce(m4.clm_width,0) end 
+			                       end clm_width
+		                   , case when y.clm_gubun ='P' then coalesce(p.clm_height,0)  
+		                     	  else case when substring(y.clm_material_order_id ,0,3)!='MP' then coalesce(t.clm_height,0) 
+		                         	    when substring(y.clm_material_order_id ,0,3)='MP' then coalesce(m4.clm_height,0) end 
+		                     	  end clm_height
+		                   , case when y.clm_gubun ='P' then coalesce(p.clm_thickness,0)  
+		                    	  else case when substring(y.clm_material_order_id ,0,3)!='MP' then coalesce(t.clm_thickness,0) 
+		                          			when substring(y.clm_material_order_id ,0,3)='MP' then coalesce(m4.clm_thickness,0) end 
+		                     	  end clm_thickness
+			               , coalesce(y.clm_current_produce_count, 0) clm_product_count 
+			               , case when y.clm_gubun='P' then case when y.clm_joborder_yn='Y' then coalesce(y.clm_current_produce_count, 0) -coalesce(cast(wp.clm_product_release_count as integer),0)-coalesce(etp.clm_product_etc_release_count,0)-coalesce(cast(af.clm_product_count as numeric),0) -coalesce(cast(ap.clm_poor_count as numeric),0) else  coalesce(y.clm_current_produce_count, 0) -coalesce(cast(sum(wp2.clm_product_release_count) as integer),0) end
+			                      else case when y.clm_joborder_yn='Y' then coalesce(cast(y.clm_current_produce_count as integer),0) -coalesce(sum(cast(m.clm_material_release_count as integer)),0) else coalesce(cast(y.clm_current_produce_count as integer),0) end
+			                      end clm_release_enable_count
+	                       , case when y.clm_gubun='P' then case when y.clm_joborder_yn='Y' then coalesce(com.clm_produce_count, 0) -coalesce(cast(wp.clm_product_release_count as integer),0)-coalesce(etp.clm_product_etc_release_count,0)-coalesce(cast(af.clm_product_count as numeric),0) -coalesce(cast(ap.clm_poor_count as numeric),0) 
+	                       										 else  0 end
+	                       										 --case when (coalesce(y.clm_current_produce_count, 0) -coalesce(cast(sum(wp2.clm_product_release_count) as integer),0)) &lt; coalesce(co.clm_usable_count,0) 
+                   										 		--			then coalesce(y.clm_current_produce_count, 0) -coalesce(cast(sum(wp2.clm_product_release_count) as integer),0)
+                   										 		--			else coalesce(co.clm_usable_count,0)
+	                       										-- end
+			                      else case when coalesce(clm_material_fix_yn,'N') ='N' then 0 when y.clm_joborder_yn='Y' then coalesce(cast(y.clm_current_produce_count as integer),0) -coalesce(sum(cast(m2.clm_material_release_count as integer)),0) else 0 end
+			                      end clm_release_enable_count2
+	                       , coalesce(y.clm_product_id,'') clm_product_id
+			               , substring(coalesce(y.clm_request_delivery_datetime,''),0,11) clm_request_delivery_datetime
+			               , (select coalesce(sum(clm_current_produce_count),0)-coalesce(cast(sum(wp2.clm_product_release_count) as integer),0) where clm_joborder_yn ='N' and y.clm_gubun ='P') stock_count
+			               , case when y.clm_order_datetime = cast(CURRENT_DATE as varchar) then 'Y' else 'N' end today_yn, x.clm_client_id
+		               from  (
+								select x.clm_client_order_id, '' clm_joborder_id, x.clm_product_id,x.clm_gubun clm_gubun, x.clm_seq clm_joborder_product_seq, cast(coalesce(x.clm_order_count ,'0') as numeric) clm_current_produce_count, x.clm_request_delivery_datetime, z.clm_order_datetime
+								  , '' clm_material_order_id , '' clm_order_income_seq ,'' clm_income_material_seq ,'' clm_material_leftover_seq ,'N' clm_joborder_yn, coalesce( x.clm_holl_size,0) clm_holl_size, coalesce(x.clm_half_option_id,'') clm_half_option_id, 'N' clm_material_fix_yn
+								from tbl_client_order_detail_info x
+								, tbl_client_order_info z, tbl_client_info c
+								where x.clm_joborder_yn ='N' and x.clm_client_order_id = z.clm_client_order_id and z.clm_client_id  =c.clm_client_id 
+						             and substring(coalesce(x.clm_request_delivery_datetime,''),0,11)::timestamp >= current_date
+								group by x.clm_client_order_id, x.clm_seq , x.clm_product_id, z.clm_order_datetime
+							union all
+					           select  x.clm_client_order_id, x.clm_joborder_id, x.clm_product_id,'P' clm_gubun, x.clm_joborder_product_seq, coalesce(x.clm_product_count,0) clm_current_produce_count,j.clm_delivery_request_datetime clm_request_delivery_datetime, c.clm_order_datetime
+					               	, '' clm_material_order_id , '' clm_order_income_seq ,'' clm_income_material_seq ,'' clm_material_leftover_seq ,'Y' clm_joborder_yn , 0 clm_holl_size,'' clm_half_option_id, 'N' clm_material_fix_yn
+				               from tbl_joborder_product_list x
+				               left outer join tbl_joborder_info j on x.clm_joborder_id = j.clm_joborder_id
+				               left outer join tbl_client_order_info c on j.clm_client_order_id = c.clm_client_order_id
+				               left outer join tbl_product_material_mapping_list y on x.clm_client_order_id = y.clm_client_order_id and x.clm_product_id = y.clm_product_id and x.clm_joborder_id = y.clm_joborder_id
+				                where (case when coalesce(y.clm_client_order_id ,'')='' and j.clm_status ='완제품' then 'N' else 'Y' end)='Y' and x.clm_client_order_id != 'CO000000'
+						             and substring(coalesce(j.clm_delivery_request_datetime,''),0,11)::timestamp >= current_date
+					         	group by x.clm_client_order_id, x.clm_joborder_id, x.clm_product_id, x.clm_joborder_product_seq,x.clm_product_count,j.clm_delivery_request_datetime , c.clm_order_datetime
+			                union all
+			                    select  x.clm_client_order_id, '' clm_joborder_id, x.clm_material_id clm_product_id,'M' clm_gubun, x.clm_seq, coalesce(x.clm_material_count,0) clm_current_produce_count, c.clm_request_delivery_datetime, co.clm_order_datetime
+			                    , x.clm_material_order_id ,x.clm_order_income_seq ,x.clm_income_material_seq ,x.clm_material_leftover_seq ,'Y' clm_joborder_yn, 0 clm_holl_size,'' clm_half_option_id, coalesce(clm_material_fix_yn,'N') clm_material_fix_yn
+			                   from tbl_joborder_material_list x
+			                   left outer join tbl_client_order_info co on x.clm_client_order_id = co.clm_client_order_id
+			                   left outer join tbl_client_order_detail_info c on x.clm_client_order_id = c.clm_client_order_id and x.clm_seq= c.clm_seq and c.clm_gubun ='M'
+			                   where 1=1
+						             and c.clm_request_delivery_datetime::timestamp >= current_date
+		               	 ) y
+		                left outer join (
+				                select clm_joborder_id, clm_client_order_id, sum(clm_product_release_count) clm_product_release_count, clm_product_id 
+				                from tbl_product_release_info x
+				                group by clm_joborder_id, clm_client_order_id, clm_product_id
+		                	) wp on y.clm_joborder_id =wp.clm_joborder_id and y.clm_product_id = wp.clm_product_id 
+		                left outer join (
+				                select clm_stock_client_order_id, clm_stock_client_order_seq, sum(clm_product_release_count) clm_product_release_count
+				                from tbl_product_release_info x
+				                where coalesce(clm_stock_client_order_id,'')!=''
+				                group by clm_stock_client_order_id, clm_stock_client_order_seq
+		                	) wp2 on y.clm_client_order_id = wp2.clm_stock_client_order_id and y.clm_joborder_product_seq = wp2.clm_stock_client_order_seq
+		           		left outer join tbl_joborder_info j on y.clm_client_order_id = j.clm_client_order_id and y.clm_joborder_id = j.clm_joborder_id
+			            left outer join (
+			             	select sum(coalesce(cast(clm_product_etc_release_count as integer),0)) clm_product_etc_release_count,clm_client_order_id ,clm_joborder_id from tbl_joborder_etc_release_product_list group by clm_client_order_id ,clm_joborder_id
+			             	) etp on j.clm_client_order_id = etp.clm_client_order_id and j.clm_joborder_id =etp.clm_joborder_id
+			            left outer join tbl_material_release_info m on y.clm_product_id =m.clm_material_id and y.clm_gubun ='M' and y.clm_material_order_id =m.clm_material_order_id and y.clm_order_income_seq= m.clm_order_income_seq and y.clm_income_material_seq = m.clm_income_material_seq and y.clm_material_leftover_seq = m.clm_material_leftover_seq
+	                    left outer join (select clm_joborder_id , coalesce(sum(clm_produce_count),0)clm_produce_count from tbl_joborder_complete_list group by clm_joborder_id) com on y.clm_joborder_id = com.clm_joborder_id
+			            left outer join tbl_material_release_info m2 on y.clm_product_id =m2.clm_material_id and y.clm_gubun ='M' and y.clm_material_order_id =m2.clm_material_order_id and y.clm_order_income_seq= m2.clm_order_income_seq and y.clm_income_material_seq = m2.clm_income_material_seq and y.clm_material_leftover_seq = m2.clm_material_leftover_seq
+			            left outer join tbl_material_info t on y.clm_product_id =t.clm_material_id      
+			            left outer join (select * from tbl_material_order_repository_info union all select * from tbl_material_cut_repository_info union all select * from tbl_material_half_repository_info) r on y.clm_product_id =r.clm_material_id and y.clm_material_order_id =r.clm_material_order_id and y.clm_order_income_seq= r.clm_order_income_seq and y.clm_income_material_seq = r.clm_income_material_seq
+			            left outer join tbl_material_leftover_repository_info r3 on y.clm_material_order_id =r3.clm_material_order_id and y.clm_order_income_seq= r3.clm_order_income_seq and y.clm_income_material_seq = r3.clm_income_material_seq and y.clm_material_leftover_seq= r3.clm_material_leftover_seq
+			            left outer join tbl_code_sub_info s on t.clm_material_type = s.clm_code_sub_id and s.clm_code_id ='0001'
+			            left outer join tbl_material_half_info m4 on y.clm_product_id =m4.clm_half_id
+			            left outer join tbl_code_sub_info m3 on m4.clm_half_type =m3.clm_code_sub_id and m3.clm_code_id ='0001'      
+			            left outer join tbl_product_info p on y.clm_product_id =p.clm_product_id
+			            left outer join tbl_client_order_info x on y.clm_client_order_id =x.clm_client_order_id   
+			            left outer join tbl_client_info c on x.clm_client_id =c.clm_client_id   
+			            left outer join tbl_material_after_list aj on y.clm_material_order_id = aj.clm_material_order_id and y.clm_income_material_seq = aj.clm_income_material_seq  and y.clm_order_income_seq = aj.clm_order_income_seq and aj.clm_process_option_id like '%0004%'
+			            left outer join (
+				                  select clm_joborder_id, sum(clm_poor_count) clm_poor_count
+				                  from(
+				                     select x.clm_after_joborder_id, x.clm_process_seq, x.clm_joborder_id, x.clm_product_id, x.clm_poor_count
+				                     from tbl_after_joborder_info x 
+				                     left outer join (select count(*) count,clm_after_joborder_id,clm_process_seq from tbl_after_joborder_info where coalesce(clm_process_datetime,'')='' group by clm_after_joborder_id,clm_process_seq ) y on x.clm_after_joborder_id= y.clm_after_joborder_id and x.clm_process_seq=y.clm_process_seq 
+				                     where coalesce(x.clm_process_datetime,'')!='' and clm_gubun='P' and x.clm_poor_count>0 and coalesce(y.count,0)=0
+				                     group by x.clm_product_id, x.clm_process_seq, x.clm_joborder_id, x.clm_poor_count, x.clm_after_joborder_id
+				                  ) a
+				                  group by clm_joborder_id
+			               ) ap on y.clm_joborder_id =ap.clm_joborder_id
+			           left outer join (
+					   		select clm_joborder_id, sum(clm_product_count)   clm_product_count
+								from(
+									select clm_after_joborder_id,clm_process_seq,clm_joborder_id,clm_product_id,clm_product_count  
+									from tbl_after_joborder_info 
+									where coalesce(clm_process_datetime,'')='' and clm_gubun='P'
+									group by clm_product_id,clm_process_seq,clm_joborder_id,clm_product_count,clm_after_joborder_id
+								) a
+								group by clm_joborder_id
+							) af on y.clm_joborder_id =af.clm_joborder_id
+						left outer join (
+						select clm_product_id,sum(clm_usable_count) clm_usable_count from (
+				        		select y.clm_product_id, coalesce(c.clm_produce_count,0) -coalesce(cast(wp.clm_product_release_count as integer),0)-coalesce(etp.clm_product_etc_release_count,0) -coalesce(cast(ap.clm_poor_count as numeric),0)-coalesce(cast(af.clm_product_count as numeric),0) clm_usable_count
+				        		from tbl_joborder_product_list y
+					        		left outer join (
+								                select clm_joborder_id, clm_client_order_id, sum(clm_product_release_count) clm_product_release_count, clm_product_id 
+								                from tbl_product_release_info x
+								                group by clm_joborder_id, clm_client_order_id, clm_product_id
+						                	) wp on y.clm_joborder_id =wp.clm_joborder_id and y.clm_product_id = wp.clm_product_id 
+				                	left outer join (
+							             	select sum(coalesce(cast(clm_product_etc_release_count as integer),0)) clm_product_etc_release_count,clm_client_order_id ,clm_joborder_id from tbl_joborder_etc_release_product_list group by clm_client_order_id ,clm_joborder_id
+							             	) etp on y.clm_client_order_id = etp.clm_client_order_id and y.clm_joborder_id =etp.clm_joborder_id
+						            left outer join (
+								                  select clm_joborder_id, sum(clm_poor_count) clm_poor_count
+								                  from(
+								                     select x.clm_after_joborder_id, x.clm_process_seq, x.clm_joborder_id, x.clm_product_id, x.clm_poor_count
+								                     from tbl_after_joborder_info x 
+								                     left outer join (select count(*) count,clm_after_joborder_id,clm_process_seq from tbl_after_joborder_info where coalesce(clm_process_datetime,'')='' group by clm_after_joborder_id,clm_process_seq ) y on x.clm_after_joborder_id= y.clm_after_joborder_id and x.clm_process_seq=y.clm_process_seq 
+								                     where coalesce(x.clm_process_datetime,'')!='' and clm_gubun='P' and x.clm_poor_count>0 and coalesce(y.count,0)=0
+								                     group by x.clm_product_id, x.clm_process_seq, x.clm_joborder_id, x.clm_poor_count, x.clm_after_joborder_id
+								                  ) a
+								                  group by clm_joborder_id
+							               ) ap on y.clm_joborder_id =ap.clm_joborder_id
+							         left outer join (
+										   		select clm_joborder_id, sum(clm_product_count)   clm_product_count
+													from(
+														select clm_after_joborder_id,clm_process_seq,clm_joborder_id,clm_product_id,clm_product_count  
+														from tbl_after_joborder_info 
+														where coalesce(clm_process_datetime,'')='' and clm_gubun='P'
+														group by clm_product_id,clm_process_seq,clm_joborder_id,clm_product_count,clm_after_joborder_id
+													) a
+													group by clm_joborder_id
+												) af on y.clm_joborder_id =af.clm_joborder_id
+					        		  , (select clm_joborder_id , coalesce(sum(clm_produce_count),0)clm_produce_count from tbl_joborder_complete_list where clm_client_order_id = 'CO000000' group by clm_joborder_id) c
+									where y.clm_joborder_id = c.clm_joborder_id and y.clm_client_order_id='CO000000'
+								) a
+							group by a.clm_product_id
+						)co on y.clm_product_id = co.clm_product_id
+		            where 1=1
+			             and coalesce(y.clm_request_delivery_datetime,'')!=''
+		           group by ap.clm_poor_count, aj.clm_after_joborder_id, af.clm_product_count, etp.clm_product_etc_release_count,y.clm_gubun,y.clm_order_income_seq,y.clm_income_material_seq,y.clm_material_leftover_seq,y.clm_client_order_id,j.clm_joborder_id,r3.clm_holl_size,r.clm_holl_size,c.clm_client_name
+			            , com.clm_produce_count, y.clm_joborder_yn, y.clm_product_id,p.clm_product_name,s.clm_code_sub_name, t.clm_material_name,x.clm_order_datetime,m3.clm_code_sub_name,x.clm_client_id,m4.clm_half_product_name,y.clm_current_produce_count,j.clm_delivery_logis_operator
+			            , clm_material_fix_yn, y.clm_holl_size, y.clm_order_datetime, y.clm_material_order_id,y.clm_request_delivery_datetime,r.clm_order_count,r3.clm_income_cube_size,r3.clm_load_repository,r.clm_load_repository,r3.clm_load_repository_position,r.clm_load_repository_position
+	        			, co.clm_usable_count, wp.clm_product_release_count, y.clm_half_option_id, p.clm_width, t.clm_width, m4.clm_width, p.clm_height, t.clm_height, m4.clm_height, p.clm_thickness, t.clm_thickness, m4.clm_thickness
+	           ) a
+	          where 1=1	 
+	         <if test='search != null and search != "" '>
+	            and (clm_product_name ilike '%' || trim(#{search}) || '%'
+	            or clm_client_name ilike '%' || trim(#{search}) || '%')
+	      	 </if>
+	         <if test='schval1 != null and schval1 != "" '>
+	      	  	and cast(replace(#{schval1},'-','') as numeric) &lt;= cast(replace(clm_request_delivery_datetime,'-','') as numeric)
+	      	 </if>
+	  	     <if test='schval2 != null and schval2 != "" '>
+	          	and cast(replace(#{schval2},'-','') as numeric) &gt;= cast(replace(clm_request_delivery_datetime,'-','') as numeric)
+	      	 </if> 
+			  group by clm_client_name, clm_product_name,clm_request_delivery_datetime, a.clm_width, a.clm_height, a.clm_thickness, a.clm_m_p_gubun, clm_product_id, clm_client_id
+	      ) a
+          where 1=1
+          order by cast(replace(clm_request_delivery_datetime,'-','') as numeric) asc, clm_client_name asc, clm_width asc, clm_height asc, clm_thickness asc, clm_product_name asc
+      </select>
+</mapper>

@@ -1,0 +1,124 @@
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itfactory.solution.Mapper.ALAMODE_MES.SCR001.SCR001001Mapper">
+	
+	<select id="List" resultType="HashMap" parameterType="HashMap">
+		select clm_date, coalesce(clm_temp_humidity,'') clm_temp_humidity
+		from tbl_temp_humidity_info
+		where clm_year = #{clm_year} and clm_month=#{clm_month}
+		order by cast(clm_date as numeric) asc
+	</select>
+	
+	<select id="GetHumidity24Hours" resultType="HashMap" parameterType="HashMap">
+		select clm_humidity1 ||'-'||clm_humidity2 ||'-'||clm_humidity3 ||'-'||clm_humidity4 ||'-'||clm_humidity5 ||'-'||clm_humidity6 ||'-'||clm_humidity7 ||'-'||
+		clm_humidity8 ||'-'||clm_humidity9 ||'-'||clm_humidity10 ||'-'||clm_humidity11 ||'-'||clm_humidity12 ||'-'||clm_humidity13 ||'-'||clm_humidity14 ||'-'||clm_humidity15 
+		||'-'||clm_humidity16 ||'-'||clm_humidity17 ||'-'||clm_humidity18 ||'-'||clm_humidity19 ||'-'||clm_humidity20 ||'-'||clm_humidity21 ||'-'||clm_humidity22 ||'-'||clm_humidity23 ||'-'||clm_humidity24 as clm_humidity
+		from tbl_humidity_24hours_info
+		where clm_year = #{clm_year} and clm_month=#{clm_month} and clm_date=#{clm_date}
+	</select>
+	
+	<select id="GetHumidity" resultType="String" parameterType="HashMap">
+		select coalesce(clm_temp_humidity,'') clm_temp_humidity
+		from tbl_temp_humidity_info
+		 where clm_year = #{clm_year} and clm_month=#{clm_month} and clm_date =#{clm_date}
+	</select>
+	
+	<select id="Exist_YN" parameterType="HashMap"  resultType="String">
+		select case when count(*)=0 then 'N' else 'Y' end 
+		from tbl_temp_humidity_info
+		where clm_year = #{clm_year} and clm_month=#{clm_month}
+	</select>
+	
+	<select id="Humidity24_Exist_YN" parameterType="HashMap"  resultType="String">
+		select case when count(*)=0 then 'N' else 'Y' end 
+		from tbl_humidity_24hours_info
+		where clm_year = #{clm_year} and clm_month=#{clm_month} and clm_date=#{clm_date}
+	</select>
+	
+	<insert id="Reg" parameterType="HashMap">
+		insert into tbl_temp_humidity_info
+			(clm_company_key, clm_year, clm_month, clm_date, clm_temp_humidity, clm_reg_user)
+		values 
+			(#{clm_company_key}, #{clm_year}, #{clm_month}, #{clm_date}, #{clm_temp_humidity}, #{clm_user})
+	</insert> 
+	
+	<insert id="RegHumidity24Hours" parameterType="HashMap">
+		insert into tbl_humidity_24hours_info
+			(clm_company_key, clm_year, clm_month, clm_date, clm_humidity1, clm_humidity2, clm_humidity3, clm_humidity4, clm_humidity5, clm_humidity6, clm_humidity7, clm_humidity8, clm_humidity9, clm_humidity10, clm_humidity11, clm_humidity12, clm_humidity13, clm_humidity14, clm_humidity15, clm_humidity16, clm_humidity17, clm_humidity18, clm_humidity19, clm_humidity20, clm_humidity21, clm_humidity22, clm_humidity23, clm_humidity24, clm_reg_datetime, clm_reg_user)
+		values 
+			(#{clm_company_key}, #{clm_year}, #{clm_month}, #{clm_date}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, #{clm_temp_humidity}, to_char(now(), 'YYYYMMDDHH24MISSMS'::text)::character varying, #{clm_user})
+	</insert> 
+	
+	<update id="Update" parameterType="HashMap">
+		update tbl_temp_humidity_info 
+		   set clm_temp_humidity = #{clm_temp_humidity}
+		   , clm_update_user = #{clm_user}
+		   , clm_update_datetime = to_char(now(), 'YYYYMMDDHH24MISSMS'::text)
+		 where clm_year = #{clm_year} and clm_month=#{clm_month} and clm_date =#{clm_date}
+	</update>
+	
+	<update id="UpdateHumidity24" parameterType="HashMap">
+		update tbl_humidity_24hours_info 
+		   set clm_humidity1 = case when (coalesce(clm_humidity1,'0')='0' or coalesce(clm_humidity1,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity1 end
+		   , clm_humidity2 = case when (coalesce(clm_humidity2,'0')='0' or coalesce(clm_humidity2,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity2 end
+		   , clm_humidity3 = case when (coalesce(clm_humidity3,'0')='0' or coalesce(clm_humidity3,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity3 end
+		   , clm_humidity4 =  case when (coalesce(clm_humidity4,'0')='0' or coalesce(clm_humidity4,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity4 end
+		   , clm_humidity5 = case when (coalesce(clm_humidity5,'0')='0' or coalesce(clm_humidity5,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity5 end
+		   , clm_humidity6 = case when (coalesce(clm_humidity6,'0')='0' or coalesce(clm_humidity6,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity6 end
+		   , clm_humidity7 = case when (coalesce(clm_humidity7,'0')='0' or coalesce(clm_humidity7,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity7 end
+		   , clm_humidity8 = case when (coalesce(clm_humidity8,'0')='0' or coalesce(clm_humidity8,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity8 end
+		   , clm_humidity9 = case when (coalesce(clm_humidity9,'0')='0' or coalesce(clm_humidity9,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity9 end
+		   , clm_humidity10 = case when (coalesce(clm_humidity10,'0')='0' or coalesce(clm_humidity10,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity10 end
+		   , clm_humidity11 = case when (coalesce(clm_humidity11,'0')='0' or coalesce(clm_humidity11,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity11 end
+		   , clm_humidity12 = case when (coalesce(clm_humidity12,'0')='0' or coalesce(clm_humidity12,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity12 end
+		   , clm_humidity13 = case when (coalesce(clm_humidity13,'0')='0' or coalesce(clm_humidity13,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity13 end
+		   , clm_humidity14 = case when (coalesce(clm_humidity14,'0')='0' or coalesce(clm_humidity14,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity14 end
+		   , clm_humidity15 = case when (coalesce(clm_humidity15,'0')='0' or coalesce(clm_humidity15,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity15 end
+		   , clm_humidity16 = case when (coalesce(clm_humidity16,'0')='0' or coalesce(clm_humidity16,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity16 end
+		   , clm_humidity17 = case when (coalesce(clm_humidity17,'0')='0' or coalesce(clm_humidity17,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity17 end
+		   , clm_humidity18 = case when (coalesce(clm_humidity18,'0')='0' or coalesce(clm_humidity18,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity18 end
+		   , clm_humidity19 = case when (coalesce(clm_humidity19,'0')='0' or coalesce(clm_humidity19,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity19 end
+		   , clm_humidity20 = case when (coalesce(clm_humidity20,'0')='0' or coalesce(clm_humidity20,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity20 end
+		   , clm_humidity21 = case when (coalesce(clm_humidity21,'0')='0' or coalesce(clm_humidity21,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity21 end
+		   , clm_humidity22 = case when (coalesce(clm_humidity22,'0')='0' or coalesce(clm_humidity22,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity22 end
+		   , clm_humidity23 = case when (coalesce(clm_humidity23,'0')='0' or coalesce(clm_humidity23,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity23 end
+		   , clm_humidity24 = case when (coalesce(clm_humidity24,'0')='0' or coalesce(clm_humidity24,'') = #{clm_before_humidity}) then #{clm_temp_humidity} else clm_humidity24 end
+		   , clm_update_user = #{clm_user}
+		   , clm_update_datetime = to_char(now(), 'YYYYMMDDHH24MISSMS'::text)
+		 where clm_year = #{clm_year} and clm_month=#{clm_month} and clm_date =#{clm_date}
+	</update>
+	
+	<update id="RegHumiditySetting" parameterType="HashMap">
+		update tbl_humidity_24hours_info 
+		     set clm_humidity1 = #{clm_humidity1}
+			   , clm_humidity2 = #{clm_humidity2}
+			   , clm_humidity3 = #{clm_humidity3}
+			   , clm_humidity4 = #{clm_humidity4}
+			   , clm_humidity5 = #{clm_humidity5}
+			   , clm_humidity6 = #{clm_humidity6}
+			   , clm_humidity7 = #{clm_humidity7}
+			   , clm_humidity8 = #{clm_humidity8}
+			   , clm_humidity9 = #{clm_humidity9}
+			   , clm_humidity10 =#{clm_humidity10}
+			   , clm_humidity11 =#{clm_humidity11}
+			   , clm_humidity12 =#{clm_humidity12}
+			   , clm_humidity13 =#{clm_humidity13}
+			   , clm_humidity14 =#{clm_humidity14}
+			   , clm_humidity15 =#{clm_humidity15}
+			   , clm_humidity16 =#{clm_humidity16}
+			   , clm_humidity17 =#{clm_humidity17}
+			   , clm_humidity18 =#{clm_humidity18}
+			   , clm_humidity19 =#{clm_humidity19}
+			   , clm_humidity20 =#{clm_humidity20}
+			   , clm_humidity21 =#{clm_humidity21}
+			   , clm_humidity22 =#{clm_humidity22}
+			   , clm_humidity23 =#{clm_humidity23}
+			   , clm_humidity24 =#{clm_humidity24}
+			   , clm_update_user=#{clm_user}
+			   , clm_update_datetime = to_char(now(), 'YYYYMMDDHH24MISSMS'::text)
+		 where clm_year = #{clm_year} and clm_month=#{clm_month} and clm_date =#{clm_date}
+	</update>
+	
+</mapper>

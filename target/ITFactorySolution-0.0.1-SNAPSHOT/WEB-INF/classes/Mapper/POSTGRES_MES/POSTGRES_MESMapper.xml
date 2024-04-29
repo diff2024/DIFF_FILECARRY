@@ -1,0 +1,23 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itfactory.solution.Mapper.POSTGRES_MES.POSTGRES_MESMapper">
+	
+	<insert id="RegTempAlarm">
+		insert into tbl_kko_talk_send 
+			(clm_company_key ,clm_template_code ,clm_message, clm_attach ,clm_recipient ) 
+		values ('0001', 'ITFACTORY_DEER_TEMP_ALRAM', '[아라모드]\n
+		온도 이상이 발생하였습니다.\n
+		기준 온도 : '||#{clm_standard_temp_humidity}||'\n
+		현재 온도 : '||#{clm_temp_humidity}, '', #{clm_phone_number} )
+	</insert>
+	
+	<insert id="RegHumidityAlarm">
+		insert into tbl_kko_talk_send 
+			(clm_company_key ,clm_template_code ,clm_message, clm_attach ,clm_recipient ) 
+		values ('0001', 'ITFACTORY_DEER_TEMP_ALRAM', '[아라모드]\n
+		습도 이상이 발생하였습니다.\n
+		기준 습도 : '||#{clm_standard_temp_humidity}||'\n
+		현재 습도 : '||#{clm_temp_humidity}, '', #{clm_phone_number} )
+	</insert>
+	
+</mapper>

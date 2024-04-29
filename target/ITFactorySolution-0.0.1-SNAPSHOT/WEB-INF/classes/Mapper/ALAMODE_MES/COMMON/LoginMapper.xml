@@ -1,0 +1,21 @@
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itfactory.solution.Mapper.ALAMODE_MES.COMMON.LoginMapper">
+	<select id="Login" resultType="HashMap" parameterType="HashMap">
+		SELECT coalesce(max(clm_user_id),'') clm_user_id, coalesce(max(clm_user_name),'') clm_user_name, coalesce(max(clm_user_department_id),'') clm_user_department_id
+			 , coalesce(max(clm_user_authority),'') clm_user_authority_id, coalesce(max(clm_user_work_yn),'') clm_user_work_yn
+			 , coalesce(max(y1.clm_authority_name), '') clm_user_authority_name, coalesce(max(y2.clm_department_id), '') clm_user_department_name 
+		  FROM tbl_user_info x
+		  left outer join tbl_authority_info y1 on x.clm_user_authority = y1.clm_authority_id
+		  left outer join tbl_department_info y2 on x.clm_user_department_id = y2.clm_department_id 
+		 WHERE clm_user_id = #{clm_user_id} AND clm_user_pw = #{clm_user_pw}
+	</select>
+	
+	<update id="UserIPUpdate" parameterType="HashMap">
+		update tbl_user_info 
+		   set clm_balance_type_a_ip = #{clm_user_ip_a}, clm_balance_type_b_ip = #{clm_user_ip_b}
+		 where clm_user_id = #{clm_user_id}
+	</update>
+</mapper>
