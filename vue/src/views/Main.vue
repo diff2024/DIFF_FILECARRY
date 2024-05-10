@@ -2,7 +2,7 @@
 .parent {
     display: flex;
     width: 100%;
-	height: 100vh;
+	height: calc(100vh - 100px);
     text-align: center;
 }
 .child {
@@ -12,7 +12,7 @@
   padding: 9px 38px;
   font-size:20px;
   background-image: linear-gradient(to right, #FFCE4B, #23A6EE);
-  border-radius: 4px;
+  border-radius: 5px;
   color: white;
   cursor: pointer;
 }
@@ -21,7 +21,7 @@
 	padding: 9px 38px;
 	font-size:32px;
 	background-color: #FFCE4B;
-	border-radius: 4px;
+	border-radius: 10px;
 	color: white;
 	cursor: pointer;
 }
@@ -29,47 +29,68 @@
 	padding: 9px 38px;
 	font-size:32px;
 	background-color: #23A6EE;
-	border-radius: 4px;
+	border-radius: 10px;
 	color: white;
 	cursor: pointer;
 }
 </style>
 <template>
 	<div>
-		<div class="parent">
-			<div id="left_ad" class="child" style="width:250px;">
-				
-			</div>
+		<div style="height:100px; text-align:center;">
+			<img src="../assets/Logo.jpg" style="width: 350px; padding: 10px;" />
+		</div>
+		<div style="height:calc(100% - 100px); background-color:#f5f5fa;">
+			<div class="parent">
+				<div id="left_ad" class="child" style="width:250px;">
+					
+				</div>
 
-			<div class="child" style="width: calc(100% - 500px);">
-				<img src="../assets/Logo.jpg" style="width: 350px; padding: 10px;" />
-				<div style="font-size:32px; font-weight:bold; padding-top:20px; padding-bottom:10px;">{{ userIP }} <img src="../assets/question mark.jpg" style="cursor:pointer;" v-on:click="fnc_alert" /></div>
-				<div style="width:60%; display: inline-block; border: 1px solid black; height: 50vh; border-radius: 30px;">
-					<div style="position: sticky; top: calc(50% - 25px);">
-						<label class="input-file-button" for="input-file">
-							업로드
-						</label>
-						<input type="file" id="input-file" style="display:none"/> 
+				<div class="child" style="width: calc(100% - 500px);">
+					<div style="font-size:32px; font-weight:bold; padding-top:15px; padding-bottom:15px;">{{ userIP }} <img src="../assets/question mark.jpg" style="cursor:pointer;" v-on:click="fnc_alert" /></div>
+					<div style="width:60%; display: inline-block; height: 50vh; border-radius: 30px; margin-bottom: 15px; box-shadow: 2px 2px 5px 2px #dadce0; background-color:white;">
+						<div v-if="userTab == 'U'" style="position: sticky; top: calc(50vh - 30px);">
+							<label class="input-file-button" for="input-file">
+								업로드
+							</label>
+							<input type="file" id="input-file" style="display:none"/> 
+							<div style="padding-top:15px; font-size:13px;">이미지를 드래그하여 여기에 놓으세요.</div>
+						</div>
+						<div v-if="userTab == 'D'">
+							<v-col xl="6" md="6" sm="6" cols="6" align-self="center">
+								이름
+							</v-col>
+							<v-col xl="2" md="2" sm="2" cols="2" align-self="center">
+								크기
+							</v-col>
+							<v-col xl="2" md="2" sm="2" cols="2" align-self="center">
+								유효기간
+							</v-col>
+							<v-col xl="2" md="2" sm="2" cols="2" align-self="center">
+								등록일시
+							</v-col>
+						</div>
+					</div>
+					<div>
+						<div style="width:60%; display: inline-block;">
+							<div style="float:left;">
+								<label class="input-upload-button" for="input-upload" v-on:click="F_tab_update('U')">
+									업로드
+								</label>
+								<input type="button" id="input-upload" style="display:none"/> 
+							</div>
+							<div style="float:right;">
+								<label class="input-download-button" for="input-download" v-on:click="F_tab_update('D')">
+									다운로드
+								</label>
+								<input type="button" id="input-download" style="display:none"/> 
+							</div>
+						</div>
 					</div>
 				</div>
-				<div>
-					<div>
-						<label class="input-upload-button" for="input-upload">
-							업로드
-						</label>
-						<input type="file" id="input-upload" style="display:none"/> 
-					</div>
-					<div>
-						<label class="input-download-button" for="input-download">
-							다운로드
-						</label>
-						<input type="file" id="input-download" style="display:none"/> 
-					</div>
-				</div>
-			</div>
 
-			<div id="right_ad" class="child" style="width:250px;">
+				<div id="right_ad" class="child" style="width:250px;">
 				
+				</div>
 			</div>
 		</div>
 		<v-dialog v-model="use_dialog" persistent max-width="290">
@@ -100,7 +121,8 @@ export default {
       return {
 			userAgent: '',
 			userIP: '',
-			isMobile: '',
+			userMobileYN: '',
+			userTab:'U', // U : Upload / D : Download
 			use_dialog: false
       }
     },
@@ -109,9 +131,9 @@ export default {
 	created() {
 		this.userAgent = navigator.userAgent.toLowerCase();
 		if((navigator.userAgent).match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i)){
-			this.isMobile = 'Y';
+			this.userMobileYN = 'Y';
 		}else{
-			this.isMobile = 'N';
+			this.userMobileYN = 'N';
 		}
 
 		axios.get('https://api64.ipify.org?format=json')
@@ -124,12 +146,15 @@ export default {
 		
 	},
     mounted() {
-		console.log('> isMobile ['+this.isMobile+']   |   userIP  ['+this.userIP+']   |   userAgent ['+this.userAgent+']  ')
+		console.log('> userMobileYN ['+this.userMobileYN+']   |   userIP  ['+this.userIP+']   |   userAgent ['+this.userAgent+']  ')
 	},
 	methods: {
+		F_tab_update(type){
+			this.userTab = type;
+		},
 		fnc_alert() {
 			Swal.fire({
-				title:this.userIP+'\nMoblie ['+this.isMobile+']\n'+this.userAgent
+				title:this.userIP+'\nMoblie ['+this.userMobileYN+']\n'+this.userAgent
 			});
 		}
 	}

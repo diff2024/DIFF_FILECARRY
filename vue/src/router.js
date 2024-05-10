@@ -27,8 +27,5 @@ export const router = new Router({
 });
 
 router.beforeEach(function (to, from, next) {
-  console.log('변경하려는 경로 : ' + to.name);
-  console.log('이전 경로 : ' + from.name);
-  
   next()
 });

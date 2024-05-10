@@ -2,7 +2,7 @@
 	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.itfactory.solution.Mapper.GMT_MES.CommonMapper">
+<mapper namespace="com.diff._file_carry.Mapper.CommonMapper">
 <select id="MenuList" resultType="HashMap" parameterType="HashMap">
 		select x.clm_menu_id, x.clm_menu_name, x.clm_screen_id, x.clm_screen_name, x.clm_screen_order, x.title, x.screen_script, x.lead_end_menu_script
 			 , cast(x.current_row as varchar) current_row , cast(x.total_menu_screen_cnt as varchar) total_menu_screen_cnt
