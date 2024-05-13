@@ -2,10 +2,15 @@ package com.diff._file_carry.Controller;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,30 +28,44 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import java.text.DecimalFormat;
 
-import com.diff._file_carry.Service.CommonService;
+import com.diff._file_carry.Service.FileService;
 
 @RestController
-@RequestMapping("/back/Common")
-public class CommonController {
+@RequestMapping("/File")
+public class FileController {
 	
 	@Autowired
-	CommonService CommonService;
+	FileService FileService;
 
-	@GetMapping(path = "/MenuList")
-	public List<HashMap<String, String>> MenuList(HttpServletRequest req) throws Exception {
+	@GetMapping(path = "/CodeList")
+	public List<HashMap<String, String>> CodeList(HttpServletRequest req) throws Exception {
+		String code_id = (req.getParameter("code_id") == null? "":req.getParameter("code_id"));
+		String code_lang_type = (req.getParameter("code_lang_type") == null? "":req.getParameter("code_lang_type"));
+		
 		HashMap<String, String> map = new HashMap<String, String>();
-		map.put("authority_id", req.getParameter("authority_id"));
-		return CommonService.MenuList(map);
+		map.put("code_id", req.getParameter("code_id"));
+		map.put("code_lang_type", req.getParameter("code_lang_type"));
+		return FileService.CodeList(map);
 	}
 	
-		@GetMapping(path = "/Authority")
-	public Map<String, String> Authority(HttpServletRequest req) throws Exception {
+	@PostMapping(path = "/SaveFile")
+	public void SaveFile(@RequestParam(value="files", required=false) List<MultipartFile> files, @RequestParam(value="file_info_list", required=false) String file_info_list, @RequestParam("userIP") String userIP, @RequestParam("userLang") String userLang, @RequestParam("datetime") String datetime, @RequestParam("system_datetime") String system_datetime) throws Exception {
+		
+		
 		HashMap<String, String> map = new HashMap<String, String>();
-		map.put("user_id", req.getParameter("user_id"));
-		map.put("screen_id", req.getParameter("to"));
-		HashMap<String, String> return_map = CommonService.Authority(map);
-		return return_map;
+        map.put("userIP", userIP);
+        map.put("userLang", userLang);
+        map.put("datetime", datetime);
+        map.put("system_datetime", system_datetime);
+        FileService.FileUpload(files, file_info_list, map);
+		
+        
 	}
 	
 	//파일 다운로드
@@ -152,17 +172,18 @@ public class CommonController {
 	        }
 		}
 	}
+	/*
 	@GetMapping(path = "/MessageList")
 	public List<HashMap<String, String>> MessageList(HttpServletRequest req) throws Exception {
 		String user_id = req.getParameter("user_id");
-		return CommonService.MessageList(user_id);
+		return FileService.MessageList(user_id);
 	}
 	
 	@PostMapping(path = "/MSGConfirm")
 	public void MSGConfirm(HttpServletRequest req) throws Exception {
 		String msg_id = (req.getParameter("msg_id") == null? "": req.getParameter("msg_id"));
 		if(!msg_id.equals("")) {
-			CommonService.MSGConfirm(msg_id);
+			FileService.MSGConfirm(msg_id);
 		}
 	}
 	
@@ -174,7 +195,7 @@ public class CommonController {
 		map.put("receive_user_id", "admin");
 		map.put("msg_title", clm_msg_title);
 		map.put("user_id", clm_user);
-		CommonService.MSGSave(map);
+		FileService.MSGSave(map);
 	}
 	
 	@GetMapping(path = "/InnerIP")
@@ -191,11 +212,12 @@ public class CommonController {
 	@GetMapping(path = "/CodeList")
 	public List<HashMap<String, String>> CodeList(HttpServletRequest req) throws Exception {
 		String code_id = (req.getParameter("code_id") == null? "": req.getParameter("code_id"));
-		return CommonService.CodeList(code_id);
+		return FileService.CodeList(code_id);
 	}
 	
 	@GetMapping(path = "/ClientList")
 	public List<HashMap<String, String>> ClientList(HttpServletRequest req) throws Exception {
-		return CommonService.ClientList();
+		return FileService.ClientList();
 	}
+	*/
 }

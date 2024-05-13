@@ -33,80 +33,113 @@
 	color: white;
 	cursor: pointer;
 }
+.btn_class:hover {
+	color:black;
+	font-weight: bold;
+}
 </style>
 <template>
 	<div>
-		<div style="height:100px; text-align:center;">
-			<img src="../assets/Logo.jpg" style="width: 350px; padding: 10px;" />
-		</div>
-		<div style="height:calc(100% - 100px); background-color:#f5f5fa;">
-			<div class="parent">
-				<div id="left_ad" class="child" style="width:250px;">
+		<v-app>
+			<div style="height:100px; text-align:center;">
+				<img src="../assets/Logo.jpg" style="width: 350px; padding: 10px;" />
+			</div>
+			<div style="height:calc(100% - 100px); background-color:#f5f5fa;">
+				<div class="parent">
+					<div id="left_ad" class="child" style="width:250px;">
+						
+					</div>
+
+					<div class="child" style="width: calc(100% - 500px);">
+						<div style="font-size:32px; font-weight:bold; padding-top:15px; padding-bottom:15px;">{{ userIP }} <img src="../assets/question mark.jpg" style="cursor:pointer;" v-on:click="fnc_alert" /></div>
+						<div style="width:60%; display: inline-block; height: 50vh; border-radius: 30px; margin-bottom: 15px; box-shadow: 2px 2px 5px 2px #dadce0; background-color:white;">
+							<div v-if="userTab == 'U'" style="position: sticky; top: calc(50vh - 7.5px);" @drop.prevent="dropInputFile($event)" @dragover.prevent>
+								<label class="input-file-button btn_class" for="input_file">
+									파일공유
+								</label>
+								<input multiple type="file" @change="onInputFile()" id="input_file" ref="input_file" style="display:none"/> 
+								<div style="padding-top:15px; font-size:13px;">파일을 드래그하여 여기에 놓으세요.</div>
+							</div>
+							<div v-if="userTab == 'D'">
+								<ag-grid-vue 
+									style="width: 100%; height: 50vh;"
+									class="ag-theme-alpine"
+									:columnDefs="columnDefs"
+									:rowData="rowData"
+									:frameworkComponents="frameworkComponents"
+									overlayNoRowsTemplate="Data load...">
+								</ag-grid-vue>
+							</div>
+						</div>
+						<div>
+							<div style="width:60%; display: inline-block;">
+								<div style="float:left;">
+									<label class="input-upload-button btn_class" for="input-upload" v-on:click="F_tab_update('U')">
+										파일공유
+									</label>
+									<input type="button" id="input-upload" style="display:none"/> 
+								</div>
+								<div style="float:right;">
+									<label class="input-download-button btn_class" for="input-download" v-on:click="F_tab_update('D')">
+										다운로드
+									</label>
+									<input type="button" id="input-download" style="display:none"/> 
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div id="right_ad" class="child" style="width:250px;">
 					
-				</div>
-
-				<div class="child" style="width: calc(100% - 500px);">
-					<div style="font-size:32px; font-weight:bold; padding-top:15px; padding-bottom:15px;">{{ userIP }} <img src="../assets/question mark.jpg" style="cursor:pointer;" v-on:click="fnc_alert" /></div>
-					<div style="width:60%; display: inline-block; height: 50vh; border-radius: 30px; margin-bottom: 15px; box-shadow: 2px 2px 5px 2px #dadce0; background-color:white;">
-						<div v-if="userTab == 'U'" style="position: sticky; top: calc(50vh - 30px);">
-							<label class="input-file-button" for="input-file">
-								업로드
-							</label>
-							<input type="file" id="input-file" style="display:none"/> 
-							<div style="padding-top:15px; font-size:13px;">이미지를 드래그하여 여기에 놓으세요.</div>
-						</div>
-						<div v-if="userTab == 'D'">
-							<v-col xl="6" md="6" sm="6" cols="6" align-self="center">
-								이름
-							</v-col>
-							<v-col xl="2" md="2" sm="2" cols="2" align-self="center">
-								크기
-							</v-col>
-							<v-col xl="2" md="2" sm="2" cols="2" align-self="center">
-								유효기간
-							</v-col>
-							<v-col xl="2" md="2" sm="2" cols="2" align-self="center">
-								등록일시
-							</v-col>
-						</div>
 					</div>
-					<div>
-						<div style="width:60%; display: inline-block;">
-							<div style="float:left;">
-								<label class="input-upload-button" for="input-upload" v-on:click="F_tab_update('U')">
-									업로드
-								</label>
-								<input type="button" id="input-upload" style="display:none"/> 
-							</div>
-							<div style="float:right;">
-								<label class="input-download-button" for="input-download" v-on:click="F_tab_update('D')">
-									다운로드
-								</label>
-								<input type="button" id="input-download" style="display:none"/> 
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div id="right_ad" class="child" style="width:250px;">
-				
 				</div>
 			</div>
-		</div>
-		<v-dialog v-model="use_dialog" persistent max-width="290">
-			<v-card>
-				<v-card-title>
-					TEST
-				</v-card-title>
-				<v-card-text style="padding-bottom:0px;">
-					
-				</v-card-text>
-				<v-card-actions style="padding-top:0px;">
-					<v-spacer></v-spacer>
-				
-				</v-card-actions>
-			</v-card>
-		</v-dialog>
+			<v-dialog v-model="uploadModal" max-width="800">
+				<v-card>
+					<v-toolbar style="background-image: linear-gradient(to right, #FFCE4B, #23A6EE); font-family:'맑은 고딕'; font-size:24px; font-weight:800; color:white;">
+						파일 공유
+					</v-toolbar>
+					<v-card-text style="padding-top:15px; background-color:rgb(245, 245, 250);">
+						<v-row>
+							<v-col xl="8" md="8" sm="8" cols="8" align-self="center" style="text-align:center; font-family:'맑은 고딕'; font-size:20px; font-weight:550; color:black;">
+								파일명
+							</v-col>
+							<v-col xl="2" md="2" sm="2" cols="2" align-self="center" style="text-align:center; font-family:'맑은 고딕'; font-size:20px; font-weight:550; color:black;">
+								파일크기
+							</v-col>
+							<v-col xl="2" md="2" sm="2" cols="2" align-self="center" style="text-align:center; font-family:'맑은 고딕'; font-size:20px; font-weight:550; color:black;">
+								만료기한
+							</v-col>
+						</v-row>
+						<v-row v-for="(fileItem) in fileItems" v-bind:key="fileItem.file_name || fileItem.file_size">
+							<v-col xl="8" md="8" sm="8" cols="8" align-self="center" style="padding-top:0px; padding-bottom:0px;">
+								<span style="font-family:'맑은 고딕'; font-size:18px; color:black;">{{ fileItem.file_name }}</span>
+							</v-col>
+							<v-col xl="2" md="2" sm="2" cols="2" align-self="center" style="padding-top:0px; padding-bottom:0px; text-align:right;">
+								<span style="font-family:'맑은 고딕'; font-size:18px; color:black;">{{ fileItem.file_size }}</span>
+							</v-col>
+							<v-col xl="2" md="2" sm="2" cols="2" align-self="center" style="padding-top:0px; padding-bottom:0px;">
+								<v-select 
+									v-model="fileItem.file_period_type" 
+									:items="period_type_items" 
+									item-text="code_detail_name"
+									item-value="code_detail_id"
+									open-on-clear 
+									persistent-hint>
+								</v-select>
+							</v-col>
+						</v-row>
+						<v-row>
+							<v-col xl="12" md="12" sm="12" cols="12" align-self="center" style="padding-top:0px; padding-bottom:0px;">
+								<v-btn depressed dark small class="btn_class" color="#FFCE4B" style="float:right;" @click="FileUpload">
+									<v-icon small>send</v-icon>&nbsp;공유
+								</v-btn>
+							</v-col>
+						</v-row>
+					</v-card-text>
+				</v-card>
+			</v-dialog>
+		</v-app>
   </div>
 </template>
 <script src="https://unpkg.com/vue"></script>
@@ -115,20 +148,63 @@
 <script>
 import axios from 'axios';
 import Swal from 'sweetalert2'
+import {AgGridVue} from 'ag-grid-vue'
+import CustomButtonComponent from "./customButtonComponentVue.js";
+import BtnCellRenderer from "./btn-cell-renderer.vue"
+import 'material-design-icons-iconfont/dist/material-design-icons.css'
 
 export default {
 	data() {
       return {
+			datetime: '',
+			system_datetime: '',
+			userLang: 'ko',
 			userAgent: '',
 			userIP: '',
 			userMobileYN: '',
 			userTab:'U', // U : Upload / D : Download
-			use_dialog: false
+			gridOptions: null,
+			columnDefs: null,
+            rowData: [],
+			uploadModal: false,
+			input_file: null,
+			files: null,
+			fileItems:[],
+			period_type_items:[],
       }
     },
 	components: {
+		AgGridVue,
+		CustomButtonComponent,
+		BtnCellRenderer
 	},
+	beforeMount() {
+		this.frameworkComponents = {
+			btnCellRenderer: BtnCellRenderer,
+		};
+	
+       this.columnDefs = [
+           {headerName: '파일ID', field:"id", width:120, hide:true, cellStyle: {textAlign: "center"}, sortable: false, filter: true, resizable:true},
+           {headerName: '파일명', field:"file_name", width:150, sortable: false, filter: true, resizable:true},
+		   {headerName: '크기', field:"file_size", width:100, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true},  
+		   {headerName: '만료일시', field:"file_expiration_datetime", width:130, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true}, 
+		   {headerName: '등록일시', field:"file_create_datetime", width:130, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true},
+		   {
+				field: 'scope',
+				resizable: true,
+				sortable: true,
+				headerName: 'Delete',
+				cellRenderer: "btnCellRenderer",
+				cellRendererParams: {
+					clicked(field) {
+						alert('deleted');
+					}
+				},
+      		}
+       ];
+    },
 	created() {
+		this.SettingDateTime();
 		this.userAgent = navigator.userAgent.toLowerCase();
 		if((navigator.userAgent).match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i)){
 			this.userMobileYN = 'Y';
@@ -147,8 +223,73 @@ export default {
 	},
     mounted() {
 		console.log('> userMobileYN ['+this.userMobileYN+']   |   userIP  ['+this.userIP+']   |   userAgent ['+this.userAgent+']  ')
+		this.rowData.push({
+			id:'1',
+			file_name:'2',
+			file_size:'3',
+			file_expiration_datetime:'4',
+			file_create_datetime:'5',
+		});
+
+		axios.get('/File/CodeList',{
+			params: {
+				code_id: '0001',
+				code_lang_type: this.userLang
+			}
+		})
+		.then(response => {
+			console.log(response)
+		 	this.period_type_items = response.data;
+		})
+		.catch(error => {
+		 	console.log(error)
+		})
 	},
 	methods: {
+		SettingDateTime(){
+			// 일시를 초기화 한다.
+			var today = new Date();
+			var year = today.getFullYear();
+			var month = ('0' + (today.getMonth() + 1)).slice(-2);
+			var day = ('0' + today.getDate()).slice(-2);
+			var hours = ('0' + today.getHours()).slice(-2); 
+			var minutes = ('0' + today.getMinutes()).slice(-2);
+			var seconds = ('0' + today.getSeconds()).slice(-2);
+			this.datetime = year + '-' + month  + '-' + day + ' ' + hours + ':' + minutes  + ':' + seconds;
+			
+			var date = new Date();
+			var utcNow = date.getTime() + (date.getTimezoneOffset() * 60 * 1000);
+			var systemNow = new Date(utcNow + (9 * 60 * 60 * 1000));
+
+			year = systemNow.getFullYear();
+			month = ('0' + (systemNow.getMonth() + 1)).slice(-2);
+			day = ('0' + systemNow.getDate()).slice(-2);
+			hours = ('0' + systemNow.getHours()).slice(-2); 
+			minutes = ('0' + systemNow.getMinutes()).slice(-2);
+			seconds = ('0' + systemNow.getSeconds()).slice(-2);
+			this.system_datetime = year + '-' + month  + '-' + day + ' ' + hours + ':' + minutes  + ':' + seconds;
+		},
+		Size_Conversaion(uploadsize){
+			var bytesUnit = ["Byte", "KB", "MB", "GB", "TB"];
+			var digit = 0;
+			while (uploadsize > 1024) {
+				uploadsize /= 1024;
+				digit++;
+			}
+			
+			var return_conversation_size = uploadsize.toFixed(2);
+			if(return_conversation_size.slice(-1) == '.' || return_conversation_size.slice(-1) == '0'){
+				return_conversation_size = return_conversation_size.slice(0, -1);
+			}
+			if(return_conversation_size.slice(-1) == '.' || return_conversation_size.slice(-1) == '0'){
+				return_conversation_size = return_conversation_size.slice(0, -1);
+			}
+			if(return_conversation_size.slice(-1) == '.' || return_conversation_size.slice(-1) == '0'){
+				return_conversation_size = return_conversation_size.slice(0, -1);
+			}
+			return_conversation_size = return_conversation_size.toLocaleString() + bytesUnit[digit];
+			return return_conversation_size;
+		},
 		F_tab_update(type){
 			this.userTab = type;
 		},
@@ -156,6 +297,91 @@ export default {
 			Swal.fire({
 				title:this.userIP+'\nMoblie ['+this.userMobileYN+']\n'+this.userAgent
 			});
+		},
+		onInputFile() {
+			this.files = null;
+			this.fileItems = [],
+			this.files = this.$refs.input_file.files;
+
+			for(var i=0; i<this.files.length; i++){
+				var file_size = this.Size_Conversaion(this.files[i].size)
+				//파일공유 추가
+				this.fileItems.push({
+					file_name: this.files[i].name,
+					file_size: file_size,
+					file_period_type: '0004'
+				});
+			}
+			this.uploadModal = true;
+		},
+		dropInputFile(event) {
+			this.files = [];
+			let file = Array.from(event.dataTransfer.files, v => v)[0]
+     		this.uploadFile(file)
+		},
+		uploadFile(file) {
+			this.fileItems = [];
+			var file_size = this.Size_Conversaion(file.size);
+			this.files.push(file);
+			//파일공유 추가
+			this.fileItems.push({
+				file_name: file.name,
+				file_size: file_size,
+				file_period_type: '0004'
+			});
+			this.uploadModal = true;
+		},
+		FileUpload(){
+			this.SettingDateTime();
+			var file_info_list = [];
+			const formData = new FormData();
+			formData.append('userIP', this.userIP);
+			formData.append('userLang', this.userLang)
+			formData.append('datetime', this.datetime);
+			formData.append('system_datetime', this.system_datetime);
+
+			for(var i=0; i<this.files.length; i++){
+				var file_size = this.Size_Conversaion(this.files[i].size);
+				var file_name = this.files[i].name;
+				
+				file_info_list.push({
+					name: String(file_name),
+					size: String(this.files[i].size),
+					conversation_size: String(file_size),
+					period_type: String(this.fileItems[i].file_period_type)
+				});
+				// 참고
+				// https://hello-bryan.tistory.com/347
+				/*
+				formData.append('file_info_list['+i+']', {
+					name: file_name,
+					size: this.files[i].size
+					//conversation_size: file_size,
+					//period_type: this.fileItems[i].file_period_type
+				});
+				*/
+				formData.append('files', this.files[i]);
+			}
+			formData.append('file_info_list', JSON.stringify(file_info_list));
+			//console.log(file_info_list);
+			axios.post('/File/SaveFile'
+					, formData										
+					, { headers: { 'Content-Type': 'multipart/form-data' } 
+			}).then(response => {
+				if (response.status == '200') {
+					this.uploadModal = false;
+					this.userTab = 'D';
+				}
+			}).catch(error => {
+
+			})	
+		},
+		onBtnClick(thias) {
+			console.log('123123123')
+			alert("BUTTON CLICKEFD")
+		},
+		onCellClicked(param){
+			console.log(param)
 		}
 	}
 }

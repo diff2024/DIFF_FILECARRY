@@ -34,7 +34,7 @@ public class DBConfig {
 		//세션 생성 시, 빌드된 DataSource를 세팅하고 SQL문을 관리할 mapper.xml의 경로를 알려준다.
 		SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
 		sqlSessionFactoryBean.setDataSource(DataSource);
-		sqlSessionFactoryBean.setMapperLocations(applicationContext.getResources("classpath:Mapper/Main/*.xml"));
+		sqlSessionFactoryBean.setMapperLocations(applicationContext.getResources("classpath:Mapper/*.xml"));
 		return sqlSessionFactoryBean.getObject();
 	}
 	
