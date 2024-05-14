@@ -1,0 +1,30 @@
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.diff._file_carry.Mapper.FileMapper">
+
+	<select id="CodeList" resultType="HashMap" parameterType="HashMap">
+		select code_detail_id, code_detail_name 
+		  from code_info
+		 where code_id = #{code_id}
+		   and code_lang_type = #{code_lang_type}
+		 order by cast(code_id as integer), cast(code_detail_id as integer)
+	</select>
+	
+	<select id="CodeValue" resultType="String" parameterType="HashMap">
+		select code_detail_value
+		  from code_info
+		 where code_id = #{code_id}
+		   and code_detail_id = #{code_detail_id}
+		   and code_lang_type = #{code_lang_type}
+	</select>
+	
+	<insert id="FileUpload" parameterType="HashMap">
+		insert into file_info
+			(ip, file_name, file_size, file_conversation_size, file_expiration_period, file_create_datetime, file_system_create_datetime, file_expiration_datetime, file_system_expiration_datetime)
+		values 
+			(#{IP}, #{FileName}, #{FileSize}, #{FileConversationSize}, #{FilePeriodType}, #{datetime}, #{system_datetime}, #{expiration_datetime}, #{system_expiration_datetime})
+	</insert>
+	
+</mapper>

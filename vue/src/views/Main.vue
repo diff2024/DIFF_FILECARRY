@@ -53,7 +53,7 @@
 					<div class="child" style="width: calc(100% - 500px);">
 						<div style="font-size:32px; font-weight:bold; padding-top:15px; padding-bottom:15px;">{{ userIP }} <img src="../assets/question mark.jpg" style="cursor:pointer;" v-on:click="fnc_alert" /></div>
 						<div style="width:60%; display: inline-block; height: 50vh; border-radius: 30px; margin-bottom: 15px; box-shadow: 2px 2px 5px 2px #dadce0; background-color:white;">
-							<div v-if="userTab == 'U'" style="position: sticky; top: calc(50vh - 7.5px);" @drop.prevent="dropInputFile($event)" @dragover.prevent>
+							<div v-if="userTab == 'U'" style="position: sticky; top: calc(50vh - 15px);" @drop.prevent="dropInputFile($event)" @dragover.prevent>
 								<label class="input-file-button btn_class" for="input_file">
 									파일공유
 								</label>
@@ -149,8 +149,6 @@
 import axios from 'axios';
 import Swal from 'sweetalert2'
 import {AgGridVue} from 'ag-grid-vue'
-import CustomButtonComponent from "./customButtonComponentVue.js";
-import BtnCellRenderer from "./btn-cell-renderer.vue"
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 
 export default {
@@ -174,14 +172,9 @@ export default {
       }
     },
 	components: {
-		AgGridVue,
-		CustomButtonComponent,
-		BtnCellRenderer
+		AgGridVue
 	},
 	beforeMount() {
-		this.frameworkComponents = {
-			btnCellRenderer: BtnCellRenderer,
-		};
 	
        this.columnDefs = [
            {headerName: '파일ID', field:"id", width:120, hide:true, cellStyle: {textAlign: "center"}, sortable: false, filter: true, resizable:true},
@@ -189,18 +182,6 @@ export default {
 		   {headerName: '크기', field:"file_size", width:100, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true},  
 		   {headerName: '만료일시', field:"file_expiration_datetime", width:130, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true}, 
 		   {headerName: '등록일시', field:"file_create_datetime", width:130, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true},
-		   {
-				field: 'scope',
-				resizable: true,
-				sortable: true,
-				headerName: 'Delete',
-				cellRenderer: "btnCellRenderer",
-				cellRendererParams: {
-					clicked(field) {
-						alert('deleted');
-					}
-				},
-      		}
        ];
     },
 	created() {
