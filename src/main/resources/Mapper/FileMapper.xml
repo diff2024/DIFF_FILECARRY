@@ -12,6 +12,17 @@
 		 order by cast(code_id as integer), cast(code_detail_id as integer)
 	</select>
 	
+	<select id="FileList" resultType="HashMap" parameterType="HashMap">
+		select x.file_id file_id, x.ip, x.file_name, x.file_size, x.file_conversation_size, x.file_expiration_period
+			 , (select a.code_detail_value from code_info a where a.code_id = '0001' and a.code_lang_type = #{code_lang_type} and a.code_detail_id  = x.file_expiration_period) file_expiration_period_hour
+			 , x.file_create_datetime, x.file_expiration_datetime, x.file_system_create_datetime, x.file_system_expiration_datetime
+		  from file_info x
+		 where x.ip = #{IP}
+		   and x.file_delete_yn = 'N'
+		   and x.file_system_expiration_datetime > left(cast(now() as varchar), 19)
+		 order by x.file_system_create_datetime asc
+	</select>
+	
 	<select id="CodeValue" resultType="String" parameterType="HashMap">
 		select code_detail_value
 		  from code_info

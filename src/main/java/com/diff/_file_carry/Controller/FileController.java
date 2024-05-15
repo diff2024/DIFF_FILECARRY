@@ -49,23 +49,30 @@ public class FileController {
 		String code_lang_type = (req.getParameter("code_lang_type") == null? "":req.getParameter("code_lang_type"));
 		
 		HashMap<String, String> map = new HashMap<String, String>();
-		map.put("code_id", req.getParameter("code_id"));
-		map.put("code_lang_type", req.getParameter("code_lang_type"));
+		map.put("code_id", code_id);
+		map.put("code_lang_type", code_lang_type);
 		return FileService.CodeList(map);
+	}
+	
+	@GetMapping(path = "/FileList")
+	public List<HashMap<String, String>> FileList(HttpServletRequest req) throws Exception {
+		String IP = (req.getParameter("IP") == null? "":req.getParameter("IP"));
+		String code_lang_type = (req.getParameter("code_lang_type") == null? "":req.getParameter("code_lang_type"));
+		
+		HashMap<String, String> map = new HashMap<String, String>();
+		map.put("IP", IP);
+		map.put("code_lang_type", code_lang_type);
+		return FileService.FileList(map);
 	}
 	
 	@PostMapping(path = "/SaveFile")
 	public void SaveFile(@RequestParam(value="files", required=false) List<MultipartFile> files, @RequestParam(value="file_info_list", required=false) String file_info_list, @RequestParam("userIP") String userIP, @RequestParam("userLang") String userLang, @RequestParam("datetime") String datetime, @RequestParam("system_datetime") String system_datetime) throws Exception {
-		
-		
 		HashMap<String, String> map = new HashMap<String, String>();
         map.put("userIP", userIP);
         map.put("userLang", userLang);
         map.put("datetime", datetime);
         map.put("system_datetime", system_datetime);
         FileService.FileUpload(files, file_info_list, map);
-		
-        
 	}
 	
 	//파일 다운로드

@@ -10,7 +10,7 @@ public class WebMvmConfig implements WebMvcConfigurer {
 	//외부에서 Back접근
 	@Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/back/**")
+        registry.addMapping("/**")
         		.allowedOrigins("*")
                 .allowedMethods("GET", "POST");
     }

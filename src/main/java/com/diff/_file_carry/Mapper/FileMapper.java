@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface FileMapper {
 	public List<HashMap<String, String>> CodeList(HashMap<String, String> map) throws Exception;
+	public List<HashMap<String, String>> FileList(HashMap<String, String> map) throws Exception;
 	public String CodeValue(HashMap<String, String> map) throws Exception;
 	public void FileUpload(HashMap<String, String> map) throws Exception;
 }

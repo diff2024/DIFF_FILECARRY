@@ -44,13 +44,13 @@
 			<div style="height:100px; text-align:center;">
 				<img src="../assets/Logo.jpg" style="width: 350px; padding: 10px;" />
 			</div>
-			<div style="height:calc(100% - 100px); background-color:#f5f5fa;">
+			<div v-if="this.userIP != ''" style="height:calc(100% - 100px); background-color:#f5f5fa;">
 				<div class="parent">
-					<div id="left_ad" class="child" style="width:250px;">
+					<div id="left_ad" class="child" style="width:calc((100% - 1000px)/2);">
 						
 					</div>
 
-					<div class="child" style="width: calc(100% - 500px);">
+					<div class="child" style="width: 1000px;">
 						<div style="font-size:32px; font-weight:bold; padding-top:15px; padding-bottom:15px;">{{ userIP }} <img src="../assets/question mark.jpg" style="cursor:pointer;" v-on:click="fnc_alert" /></div>
 						<div style="width:60%; display: inline-block; height: 50vh; border-radius: 30px; margin-bottom: 15px; box-shadow: 2px 2px 5px 2px #dadce0; background-color:white;">
 							<div v-if="userTab == 'U'" style="position: sticky; top: calc(50vh - 15px);" @drop.prevent="dropInputFile($event)" @dragover.prevent>
@@ -66,7 +66,6 @@
 									class="ag-theme-alpine"
 									:columnDefs="columnDefs"
 									:rowData="rowData"
-									:frameworkComponents="frameworkComponents"
 									overlayNoRowsTemplate="Data load...">
 								</ag-grid-vue>
 							</div>
@@ -89,7 +88,7 @@
 						</div>
 					</div>
 
-					<div id="right_ad" class="child" style="width:250px;">
+					<div id="right_ad" class="child" style="width:calc((100% - 1000px)/2);">
 					
 					</div>
 				</div>
@@ -150,8 +149,10 @@ import axios from 'axios';
 import Swal from 'sweetalert2'
 import {AgGridVue} from 'ag-grid-vue'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
+import BtnCellRenderer from './BtnCellRenderer.vue'
 
 export default {
+	name: 'Main',
 	data() {
       return {
 			datetime: '',
@@ -168,21 +169,15 @@ export default {
 			input_file: null,
 			files: null,
 			fileItems:[],
-			period_type_items:[],
+			period_type_items:[]
       }
     },
 	components: {
-		AgGridVue
+		AgGridVue,
+		BtnCellRenderer
 	},
 	beforeMount() {
-	
-       this.columnDefs = [
-           {headerName: '파일ID', field:"id", width:120, hide:true, cellStyle: {textAlign: "center"}, sortable: false, filter: true, resizable:true},
-           {headerName: '파일명', field:"file_name", width:150, sortable: false, filter: true, resizable:true},
-		   {headerName: '크기', field:"file_size", width:100, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true},  
-		   {headerName: '만료일시', field:"file_expiration_datetime", width:130, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true}, 
-		   {headerName: '등록일시', field:"file_create_datetime", width:130, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true},
-       ];
+        
     },
 	created() {
 		this.SettingDateTime();
@@ -196,22 +191,66 @@ export default {
 		axios.get('https://api64.ipify.org?format=json')
 		.then(response => {
 			this.userIP = (response.data)['ip'];
+
+			this.columnDefs = [
+				{headerName: '파일ID', field:"id", hide:true, sortable: false, filter: true, resizable:true},
+				{headerName: 'IP', field:"ip", hide:true, sortable: false, filter: true, resizable:true},
+				{headerName: '파일명', field:"file_name", width:140, cellStyle: {textAlign: "left"}, sortable: false, filter: true, resizable:true},
+				{headerName: '크기', field:"file_conversation_size", width:100, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true},  
+				{headerName: '만료일시', field:"file_expiration_datetime", width:165, cellStyle: {textAlign: "center"}, sortable: true, filter: false, resizable:true}, 
+				{
+					field: 'download',
+					headerName: '',
+					cellRenderer: "BtnCellRenderer",
+					cellRendererParams: {
+						userLang: this.userLang,
+						userIP: this.userIP
+					},
+					width:175
+				}
+			];
 		})
 		.catch(error => {
 			console.log(error)
 		});
 		
+		
+	},
+	watch: {
+		userIP(newIP) {
+			if(newIP != ''){
+
+				axios.get('/File/FileList',{
+					params: {
+						IP: this.userIP,
+						code_lang_type: this.userLang
+					}
+				})
+				.then(response => {
+					for(var i=0; i<response.data.length; i++){
+						this.rowData.push({
+							id: response.data[i].file_id,
+							file_name: response.data[i].file_name,
+							file_size: response.data[i].file_size,
+							file_conversation_size: response.data[i].file_conversation_size,
+							file_expiration_period: response.data[i].file_expiration_period,
+							file_expiration_period_hour: response.data[i].file_expiration_period_hour,
+							file_create_datetime: response.data[i].file_create_datetime,
+							file_expiration_datetime: response.data[i].file_expiration_datetime,
+							file_system_create_datetime: response.data[i].file_system_create_datetime,
+							file_system_expiration_datetime: response.data[i].file_system_expiration_datetime
+						});
+					}
+				})
+				.catch(error => {
+					console.log(error)
+				})
+			}
+		}
 	},
     mounted() {
 		console.log('> userMobileYN ['+this.userMobileYN+']   |   userIP  ['+this.userIP+']   |   userAgent ['+this.userAgent+']  ')
-		this.rowData.push({
-			id:'1',
-			file_name:'2',
-			file_size:'3',
-			file_expiration_datetime:'4',
-			file_create_datetime:'5',
-		});
-
+		
 		axios.get('/File/CodeList',{
 			params: {
 				code_id: '0001',
@@ -225,6 +264,8 @@ export default {
 		.catch(error => {
 		 	console.log(error)
 		})
+		
+		
 	},
 	methods: {
 		SettingDateTime(){
@@ -356,13 +397,6 @@ export default {
 			}).catch(error => {
 
 			})	
-		},
-		onBtnClick(thias) {
-			console.log('123123123')
-			alert("BUTTON CLICKEFD")
-		},
-		onCellClicked(param){
-			console.log(param)
 		}
 	}
 }

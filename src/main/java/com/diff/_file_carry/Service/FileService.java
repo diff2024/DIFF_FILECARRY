@@ -31,6 +31,10 @@ public class FileService {
 		return FileMapper.CodeList(map);
 	}
 	
+	public List<HashMap<String, String>> FileList(HashMap<String, String> map) throws Exception{
+		return FileMapper.FileList(map);
+	}
+	
 	public String CodeValue(HashMap<String, String> map) throws Exception{
 		return FileMapper.CodeValue(map);
 	}
