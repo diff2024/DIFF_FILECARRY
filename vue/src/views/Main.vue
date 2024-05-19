@@ -37,6 +37,9 @@
 	color:black;
 	font-weight: bold;
 }
+.upload_drap {
+	border: 2.5px dashed black
+}
 </style>
 <template>
 	<div>
@@ -52,21 +55,28 @@
 
 					<div class="child" style="width: 1000px;">
 						<div style="font-size:32px; font-weight:bold; padding-top:15px; padding-bottom:15px;">{{ userIP }} <img src="../assets/question mark.jpg" style="cursor:pointer;" v-on:click="fnc_alert" /></div>
-						<div style="width:60%; display: inline-block; height: 50vh; border-radius: 30px; margin-bottom: 15px; box-shadow: 2px 2px 5px 2px #dadce0; background-color:white;">
-							<div v-if="userTab == 'U'" style="position: sticky; top: calc(50vh - 15px);" @drop.prevent="dropInputFile($event)" @dragover.prevent>
-								<label class="input-file-button btn_class" for="input_file">
-									파일공유
-								</label>
-								<input multiple type="file" @change="onInputFile()" id="input_file" ref="input_file" style="display:none"/> 
-								<div style="padding-top:15px; font-size:13px;">파일을 드래그하여 여기에 놓으세요.</div>
+						<div v-if="userTab == 'U'" :class="uploadClass" style="width:60%; display: inline-block; height: 50vh; border-radius: 30px; margin-bottom: 15px; box-shadow: 2px 2px 5px 2px #dadce0; background-color:white;" @dragleave.prevent="dropLeave()" @drop.prevent="dropInputFile($event)" @dragover.prevent="dropOver()">
+							<div style="position: sticky; top: calc(50vh - 15px);">
+								<div v-if="uploadClass == ''">
+									<label class="input-file-button btn_class" for="input_file">
+										파일공유
+									</label>
+									<input multiple type="file" @change="onInputFile()" id="input_file" ref="input_file" style="display:none"/> 
+									<div style="padding-top:15px; font-size:13px;">파일을 드래그하여 여기에 놓으세요.</div>
+								</div>
+								<div v-else>
+									<div style="padding-top:15px; font-size:22px; font-weight:bold;">파일을 여기에 놓으세요.</div>
+								</div>
 							</div>
-							<div v-if="userTab == 'D'">
+						</div>
+						<div v-if="userTab == 'D'" style="width:60%; display: inline-block; height: 50vh; border-radius: 30px; margin-bottom: 15px; box-shadow: 2px 2px 5px 2px #dadce0; background-color:white;">
+							<div>
 								<ag-grid-vue 
 									style="width: 100%; height: 50vh;"
 									class="ag-theme-alpine"
 									:columnDefs="columnDefs"
 									:rowData="rowData"
-									overlayNoRowsTemplate="Data load...">
+									overlayNoRowsTemplate="공유된 파일이 없습니다.">
 								</ag-grid-vue>
 							</div>
 						</div>
@@ -151,25 +161,38 @@ import {AgGridVue} from 'ag-grid-vue'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 import BtnCellRenderer from './BtnCellRenderer.vue'
 
+const Toast = Swal.mixin({
+	toast: true,
+	position: 'left',
+	showConfirmButton: false,
+	timer: 1000,
+	timerProgressBar: true,
+	didOpen: (toast) => {
+		toast.addEventListener('mouseenter', Swal.stopTimer)
+		toast.addEventListener('mouseleave', Swal.resumeTimer)
+	}
+})
+
 export default {
 	name: 'Main',
 	data() {
       return {
-			datetime: '',
-			system_datetime: '',
-			userLang: 'ko',
-			userAgent: '',
-			userIP: '',
-			userMobileYN: '',
-			userTab:'U', // U : Upload / D : Download
-			gridOptions: null,
-			columnDefs: null,
-            rowData: [],
-			uploadModal: false,
-			input_file: null,
-			files: null,
-			fileItems:[],
-			period_type_items:[]
+		datetime: '',
+		system_datetime: '',
+		userLang: 'ko',
+		userAgent: '',
+		userIP: '',
+		userMobileYN: '',
+		userTab:'U', // U : Upload / D : Download
+		gridOptions: null,
+		columnDefs: null,
+		rowData: [],
+		uploadClass: '',
+		uploadModal: false,
+		input_file: null,
+		files: null,
+		fileItems:[],
+		period_type_items:[]
       }
     },
 	components: {
@@ -195,56 +218,31 @@ export default {
 			this.columnDefs = [
 				{headerName: '파일ID', field:"id", hide:true, sortable: false, filter: true, resizable:true},
 				{headerName: 'IP', field:"ip", hide:true, sortable: false, filter: true, resizable:true},
-				{headerName: '파일명', field:"file_name", width:140, cellStyle: {textAlign: "left"}, sortable: false, filter: true, resizable:true},
-				{headerName: '크기', field:"file_conversation_size", width:100, cellStyle: {textAlign: "right"}, sortable: true, filter: false, resizable:true},  
-				{headerName: '만료일시', field:"file_expiration_datetime", width:165, cellStyle: {textAlign: "center"}, sortable: true, filter: false, resizable:true}, 
+				{headerName: '파일명', field:"file_name", width:200, cellStyle: {textAlign: "left", "padding-right": "0px"}, sortable: false, filter: true, resizable:true},
+				{headerName: '크기', field:"file_conversation_size", width:90, cellStyle: {textAlign: "right", padding: "0px"}, sortable: true, filter: false, resizable:true},  
+				{headerName: '만료일시', field:"file_expiration_datetime", width:140, cellStyle: {textAlign: "center", padding: "0px"}, sortable: true, filter: false, resizable:true}, 
 				{
 					field: 'download',
 					headerName: '',
+					cellStyle: {textAlign: "center", padding: "0px"},
 					cellRenderer: "BtnCellRenderer",
 					cellRendererParams: {
+						initGrid: this.initDataGrid.bind(this),
 						userLang: this.userLang,
 						userIP: this.userIP
 					},
-					width:175
+					width:150
 				}
 			];
 		})
 		.catch(error => {
 			console.log(error)
 		});
-		
-		
 	},
 	watch: {
 		userIP(newIP) {
 			if(newIP != ''){
-
-				axios.get('/File/FileList',{
-					params: {
-						IP: this.userIP,
-						code_lang_type: this.userLang
-					}
-				})
-				.then(response => {
-					for(var i=0; i<response.data.length; i++){
-						this.rowData.push({
-							id: response.data[i].file_id,
-							file_name: response.data[i].file_name,
-							file_size: response.data[i].file_size,
-							file_conversation_size: response.data[i].file_conversation_size,
-							file_expiration_period: response.data[i].file_expiration_period,
-							file_expiration_period_hour: response.data[i].file_expiration_period_hour,
-							file_create_datetime: response.data[i].file_create_datetime,
-							file_expiration_datetime: response.data[i].file_expiration_datetime,
-							file_system_create_datetime: response.data[i].file_system_create_datetime,
-							file_system_expiration_datetime: response.data[i].file_system_expiration_datetime
-						});
-					}
-				})
-				.catch(error => {
-					console.log(error)
-				})
+				this.initDataGrid()
 			}
 		}
 	},
@@ -264,8 +262,6 @@ export default {
 		.catch(error => {
 		 	console.log(error)
 		})
-		
-		
 	},
 	methods: {
 		SettingDateTime(){
@@ -315,6 +311,35 @@ export default {
 		F_tab_update(type){
 			this.userTab = type;
 		},
+		initDataGrid() {
+			this.rowData = [];
+
+			axios.get('/File/FileList',{
+				params: {
+					IP: this.userIP,
+					code_lang_type: this.userLang
+				}
+			})
+			.then(response => {
+				for(var i=0; i<response.data.length; i++){
+					this.rowData.push({
+						id: response.data[i].file_id,
+						file_name: response.data[i].file_name,
+						file_size: response.data[i].file_size,
+						file_conversation_size: response.data[i].file_conversation_size,
+						file_expiration_period: response.data[i].file_expiration_period,
+						file_expiration_period_hour: response.data[i].file_expiration_period_hour,
+						file_create_datetime: response.data[i].file_create_datetime,
+						file_expiration_datetime: response.data[i].file_expiration_datetime,
+						file_system_create_datetime: response.data[i].file_system_create_datetime,
+						file_system_expiration_datetime: response.data[i].file_system_expiration_datetime
+					});
+				}
+			})
+			.catch(error => {
+				console.log(error)
+			})
+		},
 		fnc_alert() {
 			Swal.fire({
 				title:this.userIP+'\nMoblie ['+this.userMobileYN+']\n'+this.userAgent
@@ -336,7 +361,14 @@ export default {
 			}
 			this.uploadModal = true;
 		},
+		dropOver(){
+			this.uploadClass = 'upload_drap'
+		},
+		dropLeave(){
+			this.uploadClass = ''
+		},
 		dropInputFile(event) {
+			this.uploadClass = ''
 			this.files = [];
 			let file = Array.from(event.dataTransfer.files, v => v)[0]
      		this.uploadFile(file)
@@ -372,26 +404,22 @@ export default {
 					conversation_size: String(file_size),
 					period_type: String(this.fileItems[i].file_period_type)
 				});
-				// 참고
-				// https://hello-bryan.tistory.com/347
-				/*
-				formData.append('file_info_list['+i+']', {
-					name: file_name,
-					size: this.files[i].size
-					//conversation_size: file_size,
-					//period_type: this.fileItems[i].file_period_type
-				});
-				*/
+				
 				formData.append('files', this.files[i]);
 			}
 			formData.append('file_info_list', JSON.stringify(file_info_list));
 			//console.log(file_info_list);
-			axios.post('/File/SaveFile'
+			axios.post('/File/FileUpload'
 					, formData										
 					, { headers: { 'Content-Type': 'multipart/form-data' } 
 			}).then(response => {
 				if (response.status == '200') {
+					Toast.fire({
+						icon: 'success',
+						title: '파일이 공유 되었습니다.'
+					})
 					this.uploadModal = false;
+					this.initDataGrid();
 					this.userTab = 'D';
 				}
 			}).catch(error => {

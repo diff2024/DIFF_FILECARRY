@@ -112,7 +112,7 @@ public class FileService {
             				FileOutputStream fos = new FileOutputStream(fileLocation + multipartFile.getOriginalFilename());
     		                InputStream is = multipartFile.getInputStream();
     		                int readCount = 0;
-    		                byte[] buffer = new byte[1024];
+    		                byte[] buffer = new byte[1024 * 5];
     		                while((readCount = is.read(buffer)) != -1){
     		                	fos.write(buffer,0,readCount);
     		                }
@@ -141,5 +141,9 @@ public class FileService {
             	index++;
 			}
 		}
+	}
+	
+	public void FileDelete(HashMap<String, String> map) throws Exception{
+		FileMapper.FileDelete(map);
 	}
 }

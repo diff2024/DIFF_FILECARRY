@@ -1,9 +1,14 @@
 package com.diff._file_carry.Controller;
 
 import java.io.File;
+import java.io.BufferedReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.URLEncoder;
@@ -65,8 +70,8 @@ public class FileController {
 		return FileService.FileList(map);
 	}
 	
-	@PostMapping(path = "/SaveFile")
-	public void SaveFile(@RequestParam(value="files", required=false) List<MultipartFile> files, @RequestParam(value="file_info_list", required=false) String file_info_list, @RequestParam("userIP") String userIP, @RequestParam("userLang") String userLang, @RequestParam("datetime") String datetime, @RequestParam("system_datetime") String system_datetime) throws Exception {
+	@PostMapping(path = "/FileUpload")
+	public void FileUpload(@RequestParam(value="files", required=false) List<MultipartFile> files, @RequestParam(value="file_info_list", required=false) String file_info_list, @RequestParam("userIP") String userIP, @RequestParam("userLang") String userLang, @RequestParam("datetime") String datetime, @RequestParam("system_datetime") String system_datetime) throws Exception {
 		HashMap<String, String> map = new HashMap<String, String>();
         map.put("userIP", userIP);
         map.put("userLang", userLang);
@@ -75,27 +80,59 @@ public class FileController {
         FileService.FileUpload(files, file_info_list, map);
 	}
 	
+	@PostMapping(path = "/FileDelete")
+	public String FileDelete(HttpServletRequest req) throws Exception {
+		String userLang = (req.getParameter("userLang") == null? "":req.getParameter("userLang"));
+		String userIP = (req.getParameter("userIP") == null? "":req.getParameter("userIP"));
+		String file_id = (req.getParameter("file_id") == null? "":req.getParameter("file_id"));
+		String ClientIP = GetClientIP();
+		
+		if(!ClientIP.equals(userIP)) {
+			return "N";
+		} else {
+			HashMap<String, String> map = new HashMap<String, String>();
+			map.put("file_id", file_id);
+			FileService.FileDelete(map);
+			return "Y";
+		}
+	}
+	
 	//파일 다운로드
-	@GetMapping(path = "/fileDown")
+	@PostMapping(path = "/FileDownload")
 	public void fileDown(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-		if(req.getParameter("clm_file_name")!="" || req.getParameter("clm_file_name")!=null|| req.getParameter("clm_file_name")!="이미지첨부파일" || req.getParameter("clm_file_name")!="PDF첨부파일") {
-			String JoborderID = req.getParameter("clm_joborder_id");
-			String fileName = req.getParameter("clm_file_name");
-			String saveFileName = "http://itfactoryddns.iptime.org:10004/MES/DAEKWANG/img/joborder/"+ JoborderID + "/"+ req.getParameter("clm_file_name");
+		String userIP = (req.getParameter("userIP") == null? "":req.getParameter("userIP"));
+		String file_id = (req.getParameter("file_id") == null? "":req.getParameter("file_id"));
+		String file_name = (req.getParameter("file_name") == null? "":req.getParameter("file_name"));
+		
+		if(!userIP.equals("") && !file_id.equals("") && !file_name.equals("")) {
+			
+			File f = new File("C:\\FILECARRY\\" + userIP + "\\" + file_name);
+	        // file 다운로드 설정
+			resp.setContentType("application/download");
+			resp.setContentLength((int)f.length());
+			resp.setHeader("Content-disposition", "attachment;filename=\"" + file_name + "\"");
+	        // response 객체를 통해서 서버로부터 파일 다운로드
+	        OutputStream os = resp.getOutputStream();
+	        // 파일 입력 객체 생성
+	        FileInputStream fis = new FileInputStream(f);
+	        FileCopyUtils.copy(fis, os);
+	        fis.close();
+	        os.close();
+
+	        /*
+			
 			String contentType = "";
 			String fileLength = "";
 			
-			File tmpFile = new File("C:\\ITF\\ITFACTORY\\PRODUCT\\"+ JoborderID + "\\" + fileName);
+			File tmpFile = new File("C:\\FILECARRY\\" + userIP + "\\" + file_name);
 	
 		    if (tmpFile.isFile()) {
 		      long L = tmpFile.length();
 		      fileLength = Long.toString(L);
 		    }
 			
-			
-			String fileChk = fileName.substring((fileName.indexOf(".")+1), fileName.length());
+			String fileChk = file_name.substring((file_name.indexOf(".")+1), file_name.length());
 			String userAgent = req.getHeader("User-Agent");
-			File f = new File(saveFileName);
 			
 			switch(fileChk) {
 				case "xlsx":
@@ -133,9 +170,9 @@ public class FileController {
 					break;
 			}
 	
-			if(f != null && fileName!="") {
+			if(file_name!="") {
 	            if(userAgent.indexOf("MSIE") > -1 || userAgent.indexOf("Trident") > -1){
-	                fileName = URLEncoder.encode(f.getName(), "utf-8").replaceAll("\\+", "%20");;
+	            	file_name = URLEncoder.encode(f.getName(), "utf-8").replaceAll("\\+", "%20");;
 	            }else if(userAgent.indexOf("Chrome") > -1) {
 	            	StringBuffer sb = new StringBuffer();
 	            	for(int i=0; i<f.getName().length(); i++) {
@@ -146,14 +183,14 @@ public class FileController {
 	            			sb.append(c);
 	            		}
 	            	}
-	            	fileName = sb.toString();
+	            	file_name = sb.toString();
 	            }else {
-	            	fileName = new String(f.getName().getBytes("utf-8"));
+	            	file_name = new String(f.getName().getBytes("utf-8"));
 	            }
 	            if(fileLength!=""){	            		            
 	            resp.setContentType(contentType);
 	            resp.setContentLength(Integer.parseInt(fileLength));
-	            resp.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\";");
+	            resp.setHeader("Content-Disposition", "attachment; filename=\"" + file_name + "\";");
 	            resp.setHeader("Content-Transfer-Encoding", "binary");
 	            }
 	            OutputStream out = resp.getOutputStream();
@@ -177,7 +214,17 @@ public class FileController {
 	                }
 	            }
 	        }
+	        */
 		}
+	}
+	
+	public String GetClientIP() throws IOException {
+		String ClientIP = "";
+		URL url = new URL("http://checkip.amazonaws.com");
+        URLConnection connection = url.openConnection();
+        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        ClientIP = in.readLine();
+        return ClientIP;
 	}
 	/*
 	@GetMapping(path = "/MessageList")

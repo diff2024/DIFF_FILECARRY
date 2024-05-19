@@ -11,4 +11,5 @@ public interface FileMapper {
 	public List<HashMap<String, String>> FileList(HashMap<String, String> map) throws Exception;
 	public String CodeValue(HashMap<String, String> map) throws Exception;
 	public void FileUpload(HashMap<String, String> map) throws Exception;
+	public void FileDelete(HashMap<String, String> map) throws Exception;
 }

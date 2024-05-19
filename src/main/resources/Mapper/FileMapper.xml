@@ -38,4 +38,9 @@
 			(#{IP}, #{FileName}, #{FileSize}, #{FileConversationSize}, #{FilePeriodType}, #{datetime}, #{system_datetime}, #{expiration_datetime}, #{system_expiration_datetime})
 	</insert>
 	
+	<update id="FileDelete" parameterType="HashMap">
+		update file_info
+		   set file_delete_yn = 'Y'
+		 where file_id = #{file_id}
+	</update>
 </mapper>
