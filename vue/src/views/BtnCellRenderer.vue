@@ -1,8 +1,8 @@
 <template>
-  <span>
-    <v-btn small color="#23A6EE" style="margin-bottom:8px; color:white; font-weight:bold;" @click="downClick($event)">다운로드</v-btn>
+  <span style="text-align:center;">
+    <v-btn small color="#23A6EE" style="margin-bottom:8px; color:white; font-weight:bold;" @click="downClick($event)">{{ this.text_down }}</v-btn>
     &nbsp;
-    <v-btn small color="red" style="margin-bottom:8px; color:white; font-weight:bold;" @click="deleteClick($event)">삭제</v-btn>
+    <v-btn small color="red" style="margin-bottom:8px; color:white; font-weight:bold;" @click="deleteClick($event)">{{ this.text_delete }}</v-btn>
   </span>
 </template>
 
@@ -15,17 +15,28 @@
     position: 'left',
     showConfirmButton: false,
     timer: 1000,
+    width: "500px",
     timerProgressBar: true,
     didOpen: (toast) => {
       toast.addEventListener('mouseenter', Swal.stopTimer)
       toast.addEventListener('mouseleave', Swal.resumeTimer)
     }
   })
-    
+  
   export default {
     name: 'BtnCellRenderer',
+    data() {
+      return {
+        text_down : '',
+        text_delete : ''
+      }
+    },
     mounted() {
     },
+    created() {
+      this.text_down = this.params.RendererDownBTN();
+      this.text_delete = this.params.RendererDelBTN();
+    },  
     methods: {
       downClick(){
         var file_id = this.$data.params.data.id;
@@ -53,15 +64,21 @@
       deleteClick(){
         var file_id = this.$data.params.data.id;
         var file_name = this.$data.params.data.file_name;
-        
+        var TEXT2000MSG = this.params.RendererMSG('2000');
+        var TEXT2001MSG = this.params.RendererMSG('2001');
+        var TEXT2003MSG = this.params.RendererMSG('2003');
+        var TEXT2004MSG = this.params.RendererMSG('2004');
+        var TEXT2005MSG = this.params.RendererMSG('2005');
+        var TEXT2006MSG = this.params.RendererMSG('2006');
+
         Swal.fire({
-          text: file_name + "을(를) 삭제 하시겠습니까?",
+          text: TEXT2003MSG,
           showCancelButton: true,
           allowOutsideClick: false,
           confirmButtonColor: '#3085d6',
           cancelButtonColor: '#d33',
-          confirmButtonText: '예',
-          cancelButtonText: '아니요'
+          confirmButtonText: TEXT2000MSG,
+          cancelButtonText: TEXT2001MSG
         }).then((result) => {
           if (result.isConfirmed) {
             
@@ -75,20 +92,20 @@
                 if(response.data == 'N'){
                   Toast.fire({
                     icon: 'error',
-                    title: '보안상의 이유로 삭제되지 않았습니다.'
+                    title: TEXT2004MSG
                   })
                   this.params.initGrid();
                 }else{
                   Toast.fire({
                     icon: 'success',
-                    title: '파일이 삭제 되었습니다.'
+                    title: TEXT2006MSG
                   })
                   this.params.initGrid();
                 }
               }else{
                 Toast.fire({
                   icon: 'error',
-                  title: '알 수 없는 이유로 삭제되지 않았습니다.'
+                  title: TEXT2005MSG
                 })
                 this.params.initGrid();
               }
@@ -99,20 +116,6 @@
             
           }
         })
-
-        /*
-        axios.post('/File/DeleteFile', null, { params: {
-          file_id: file_id
-        }})
-        .then(response => {
-          if (response.status == '200') {
-            
-          }
-        })
-        .catch(error => {
-          console.log(error)
-        })
-        */
       }
     },
   }

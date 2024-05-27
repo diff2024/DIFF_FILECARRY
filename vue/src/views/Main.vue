@@ -40,32 +40,49 @@
 .upload_drap {
 	border: 2.5px dashed black
 }
+
 </style>
 <template>
 	<div>
 		<v-app>
 			<div style="height:100px; text-align:center;">
-				<img src="../assets/Logo.jpg" style="width: 350px; padding: 10px;" />
+				<v-row>
+				<v-col xl="2" md="2" sm="2" cols="2" align-self="center" style="text-align:center; color:black;">
+				</v-col>
+				<v-col xl="8" md="8" sm="8" cols="8" align-self="center" style="text-align:center; color:black;">
+					<img src="../assets/Logo.jpg" style="width: 350px; padding: 10px;" />
+				</v-col>
+				<v-col xl="2" md="2" sm="2" cols="2" align-self="center" style="text-align:center; color:black;">
+					<v-select :items="Langlist" v-model="userLang" style="width:140px;" >
+						<template v-slot:selection="{ item }">
+							<img height="24px" width="24px" :src="item.image" :value="item.value">&nbsp;&nbsp;{{ item.name }}
+						</template>
+						<template v-slot:item="{ item }">
+							<img height="24px" width="24px" style="background-color:white !important;" :src="item.image" :value="item.value">&nbsp;&nbsp;{{ item.name }}
+						</template>
+					</v-select>
+				</v-col>
+				</v-row>
 			</div>
 			<div v-if="this.userIP != ''" style="height:calc(100% - 100px); background-color:#f5f5fa;">
 				<div class="parent">
-					<div id="left_ad" class="child" style="width:calc((100% - 1000px)/2);">
+					<div id="left_ad" class="child" style="width:calc((100% - 1100px)/2);">
 						
 					</div>
 
-					<div class="child" style="width: 1000px;">
+					<div class="child" style="width: 1100px;">
 						<div style="font-size:32px; font-weight:bold; padding-top:15px; padding-bottom:15px;">{{ userIP }} <img src="../assets/question mark.jpg" style="cursor:pointer;" v-on:click="fnc_alert" /></div>
 						<div v-if="userTab == 'U'" :class="uploadClass" style="width:60%; display: inline-block; height: 50vh; border-radius: 30px; margin-bottom: 15px; box-shadow: 2px 2px 5px 2px #dadce0; background-color:white;" @dragleave.prevent="dropLeave()" @drop.prevent="dropInputFile($event)" @dragover.prevent="dropOver()">
 							<div style="position: sticky; top: calc(50vh - 15px);">
 								<div v-if="uploadClass == ''">
 									<label class="input-file-button btn_class" for="input_file">
-										파일공유
+										{{ TEXT0003 }}
 									</label>
 									<input multiple type="file" @change="onInputFile()" id="input_file" ref="input_file" style="display:none"/> 
-									<div style="padding-top:15px; font-size:13px;">파일을 드래그하여 여기에 놓으세요.</div>
+									<div style="padding-top:15px; font-size:13px;">{{ TEXT0004 }}</div>
 								</div>
 								<div v-else>
-									<div style="padding-top:15px; font-size:22px; font-weight:bold;">파일을 여기에 놓으세요.</div>
+									<div style="padding-top:15px; font-size:22px; font-weight:bold;">{{ TEXT0005 }}</div>
 								</div>
 							</div>
 						</div>
@@ -76,7 +93,8 @@
 									class="ag-theme-alpine"
 									:columnDefs="columnDefs"
 									:rowData="rowData"
-									overlayNoRowsTemplate="공유된 파일이 없습니다.">
+									@grid-ready="onGridReady"
+									:overlayNoRowsTemplate=TEXT1000>
 								</ag-grid-vue>
 							</div>
 						</div>
@@ -84,13 +102,13 @@
 							<div style="width:60%; display: inline-block;">
 								<div style="float:left;">
 									<label class="input-upload-button btn_class" for="input-upload" v-on:click="F_tab_update('U')">
-										파일공유
+										{{ TEXT0001 }}
 									</label>
 									<input type="button" id="input-upload" style="display:none"/> 
 								</div>
 								<div style="float:right;">
 									<label class="input-download-button btn_class" for="input-download" v-on:click="F_tab_update('D')">
-										다운로드
+										{{ TEXT0002 }}
 									</label>
 									<input type="button" id="input-download" style="display:none"/> 
 								</div>
@@ -98,7 +116,7 @@
 						</div>
 					</div>
 
-					<div id="right_ad" class="child" style="width:calc((100% - 1000px)/2);">
+					<div id="right_ad" class="child" style="width:calc((100% - 1100px)/2);">
 					
 					</div>
 				</div>
@@ -106,18 +124,18 @@
 			<v-dialog v-model="uploadModal" max-width="800">
 				<v-card>
 					<v-toolbar style="background-image: linear-gradient(to right, #FFCE4B, #23A6EE); font-family:'맑은 고딕'; font-size:24px; font-weight:800; color:white;">
-						파일 공유
+						{{ TEXT0003 }}
 					</v-toolbar>
 					<v-card-text style="padding-top:15px; background-color:rgb(245, 245, 250);">
 						<v-row>
 							<v-col xl="8" md="8" sm="8" cols="8" align-self="center" style="text-align:center; font-family:'맑은 고딕'; font-size:20px; font-weight:550; color:black;">
-								파일명
+								{{ TEXT0006 }}
 							</v-col>
 							<v-col xl="2" md="2" sm="2" cols="2" align-self="center" style="text-align:center; font-family:'맑은 고딕'; font-size:20px; font-weight:550; color:black;">
-								파일크기
+								{{ TEXT0007 }}
 							</v-col>
 							<v-col xl="2" md="2" sm="2" cols="2" align-self="center" style="text-align:center; font-family:'맑은 고딕'; font-size:20px; font-weight:550; color:black;">
-								만료기한
+								{{ TEXT0008 }}
 							</v-col>
 						</v-row>
 						<v-row v-for="(fileItem) in fileItems" v-bind:key="fileItem.file_name || fileItem.file_size">
@@ -141,7 +159,7 @@
 						<v-row>
 							<v-col xl="12" md="12" sm="12" cols="12" align-self="center" style="padding-top:0px; padding-bottom:0px;">
 								<v-btn depressed dark small class="btn_class" color="#FFCE4B" style="float:right;" @click="FileUpload">
-									<v-icon small>send</v-icon>&nbsp;공유
+									<v-icon small>send</v-icon>&nbsp;{{ TEXT0009 }}
 								</v-btn>
 							</v-col>
 						</v-row>
@@ -166,6 +184,7 @@ const Toast = Swal.mixin({
 	position: 'left',
 	showConfirmButton: false,
 	timer: 1000,
+	width: "500px",
 	timerProgressBar: true,
 	didOpen: (toast) => {
 		toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -179,11 +198,13 @@ export default {
       return {
 		datetime: '',
 		system_datetime: '',
-		userLang: 'ko',
+		userLang: '',
 		userAgent: '',
 		userIP: '',
 		userMobileYN: '',
 		userTab:'U', // U : Upload / D : Download
+		gridApi: null,
+		columnApi: null,
 		gridOptions: null,
 		columnDefs: null,
 		rowData: [],
@@ -192,7 +213,41 @@ export default {
 		input_file: null,
 		files: null,
 		fileItems:[],
-		period_type_items:[]
+		period_type_items_origin:[],
+		period_type_items:[],
+		TextLangList: null,
+		Langlist: [
+			{ name: '한국어', image: 'https://goodies.icons8.com/web/common/header/flags/ko.svg', value: 'ko' },
+			{ name: 'English', image: 'https://goodies.icons8.com/web/common/header/flags/us.svg', value: 'en'},
+			{ name: '简体中文', image: 'https://goodies.icons8.com/web/common/header/flags/zh.svg', value: 'ch'},
+			{ name: '日本語', image: 'https://goodies.icons8.com/web/common/header/flags/ja.svg', value: 'jp'}
+		],
+
+		/* TEXT */
+		TEXT0001 : '',
+		TEXT0002 : '',
+		TEXT0003 : '',
+		TEXT0004 : '',
+		TEXT0005 : '',
+		TEXT0006 : '',
+		TEXT0007 : '',
+		TEXT0008 : '',
+		TEXT0009 : '',
+		TEXT1000 : '',
+		TEXT1001 : '',
+		TEXT1002 : '',
+		TEXT1003 : '',
+		TEXT1004 : '',
+		TEXT1005 : '',
+		TEXT1006 : '',
+		TEXT1007 : '',
+		TEXT2000 : '',
+		TEXT2001 : '',
+		TEXT2002 : '',
+		TEXT2003 : '',
+		TEXT2004 : '',
+		TEXT2005 : '',
+		TEXT2006 : ''
       }
     },
 	components: {
@@ -203,6 +258,68 @@ export default {
         
     },
 	created() {
+		axios.get('https://api.ip.pe.kr/json/')
+		.then(response => {
+			this.userIP = (response.data)['ip'];
+			if((response.data)['country_code'] == 'KR'){
+				this.userLang = 'ko'
+			}else if((response.data)['country_code'] == 'JP'){
+				this.userLang = 'jp'
+			}else if((response.data)['country_code'] == 'CN'){
+				this.userLang = 'ch'
+			}else{
+				this.userLang = 'en'
+			}
+
+			this.columnDefs = [
+				{headerName: '파일ID', field:"id", hide:true, sortable: false, filter: true, resizable:true},
+				{headerName: 'IP', field:"ip", hide:true, sortable: false, filter: true, resizable:true},
+				{headerName: '파일명', field:"file_name", width:230, cellStyle: {textAlign: "left", "padding-right": "0px"}, sortable: false, filter: true, resizable:true},
+				{headerName: '파일크기', field:"file_conversation_size", width:100, cellStyle: {textAlign: "right", padding: "0px"}, sortable: true, filter: false, resizable:true},  
+				{headerName: '만료일시', field:"file_expiration_datetime", width:145, cellStyle: {textAlign: "center", padding: "0px"}, sortable: true, filter: false, resizable:true}, 
+				{
+					field: 'download',
+					headerName: '',
+					cellStyle: {textAlign: "center", padding: "0px"},
+					cellRenderer: "BtnCellRenderer",
+					cellRendererParams: {
+						initGrid: this.initDataGrid.bind(this),
+						RendererDownBTN: this.RendererDownBTN.bind(this),
+						RendererDelBTN: this.RendererDelBTN.bind(this),
+						RendererMSG: this.RendererMSG.bind(this),
+						userLang: this.userLang,
+						userIP: this.userIP
+					},
+					width:180
+				}
+			];
+		})
+		.catch(error => {
+		 	console.log(error)
+		})
+
+		axios.get('/File/TextLangList')
+		.then(response => {
+			this.TextLangList = response.data
+
+			axios.get('/File/CodeList',{
+				params: {
+					code_id: '0001',
+					code_lang_type: this.userLang
+				}
+			})
+			.then(response => {
+				this.period_type_items_origin = response.data;
+				this.initDataLang()
+			})
+			.catch(error => {
+				console.log(error)
+			})
+		})
+		.catch(error => {
+		 	console.log(error)
+		})
+
 		this.SettingDateTime();
 		this.userAgent = navigator.userAgent.toLowerCase();
 		if((navigator.userAgent).match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i)){
@@ -213,27 +330,7 @@ export default {
 
 		axios.get('https://api64.ipify.org?format=json')
 		.then(response => {
-			this.userIP = (response.data)['ip'];
-
-			this.columnDefs = [
-				{headerName: '파일ID', field:"id", hide:true, sortable: false, filter: true, resizable:true},
-				{headerName: 'IP', field:"ip", hide:true, sortable: false, filter: true, resizable:true},
-				{headerName: '파일명', field:"file_name", width:200, cellStyle: {textAlign: "left", "padding-right": "0px"}, sortable: false, filter: true, resizable:true},
-				{headerName: '크기', field:"file_conversation_size", width:90, cellStyle: {textAlign: "right", padding: "0px"}, sortable: true, filter: false, resizable:true},  
-				{headerName: '만료일시', field:"file_expiration_datetime", width:140, cellStyle: {textAlign: "center", padding: "0px"}, sortable: true, filter: false, resizable:true}, 
-				{
-					field: 'download',
-					headerName: '',
-					cellStyle: {textAlign: "center", padding: "0px"},
-					cellRenderer: "BtnCellRenderer",
-					cellRendererParams: {
-						initGrid: this.initDataGrid.bind(this),
-						userLang: this.userLang,
-						userIP: this.userIP
-					},
-					width:150
-				}
-			];
+			
 		})
 		.catch(error => {
 			console.log(error)
@@ -244,26 +341,23 @@ export default {
 			if(newIP != ''){
 				this.initDataGrid()
 			}
+		},
+		userLang(newLang) {
+			if(newLang != ''){
+				this.initDataLang()
+			}
 		}
 	},
     mounted() {
 		console.log('> userMobileYN ['+this.userMobileYN+']   |   userIP  ['+this.userIP+']   |   userAgent ['+this.userAgent+']  ')
 		
-		axios.get('/File/CodeList',{
-			params: {
-				code_id: '0001',
-				code_lang_type: this.userLang
-			}
-		})
-		.then(response => {
-			console.log(response)
-		 	this.period_type_items = response.data;
-		})
-		.catch(error => {
-		 	console.log(error)
-		})
 	},
 	methods: {
+		onGridReady(params) {
+			this.gridApi = params.api;
+			this.columnApi = params.columnApi;
+			//params.api.sizeColumnsToFit();
+		},
 		SettingDateTime(){
 			// 일시를 초기화 한다.
 			var today = new Date();
@@ -311,6 +405,29 @@ export default {
 		F_tab_update(type){
 			this.userTab = type;
 		},
+		RendererDownBTN(){
+			return this.TEXT1006;
+		},
+		RendererDelBTN(){
+			return this.TEXT1007;
+		},
+		RendererMSG(TETX_ID){
+			if(TETX_ID == '2000'){
+				return this.TEXT2000;
+			}else if(TETX_ID == '2001'){
+				return this.TEXT2001;
+			}else if(TETX_ID == '2002'){
+				return this.TEXT2002;
+			}else if(TETX_ID == '2003'){
+				return this.TEXT2003;
+			}else if(TETX_ID == '2004'){
+				return this.TEXT2004;
+			}else if(TETX_ID == '2005'){
+				return this.TEXT2005;
+			}else if(TETX_ID == '2006'){
+				return this.TEXT2006;
+			}
+		},
 		initDataGrid() {
 			this.rowData = [];
 
@@ -339,6 +456,74 @@ export default {
 			.catch(error => {
 				console.log(error)
 			})
+		},
+		initDataLang(){
+			this.period_type_items = []
+			for(var i=0; i<this.period_type_items_origin.length; i++){
+				if(this.period_type_items_origin[i].code_lang_type == this.userLang){
+					this.period_type_items.push({
+						code_detail_id : this.period_type_items_origin[i].code_detail_id,
+						code_detail_name : this.period_type_items_origin[i].code_detail_name
+					});
+				}
+			}
+
+			if(this.TextLangList != null){
+				this.TEXT0001 = this.TextLangList[0]['lang_'+this.userLang];
+				this.TEXT0002 = this.TextLangList[1]['lang_'+this.userLang];
+				this.TEXT0003 = this.TextLangList[2]['lang_'+this.userLang];
+				this.TEXT0004 = this.TextLangList[3]['lang_'+this.userLang];
+				this.TEXT0005 = this.TextLangList[4]['lang_'+this.userLang];
+				this.TEXT0006 = this.TextLangList[5]['lang_'+this.userLang];
+				this.TEXT0007 = this.TextLangList[6]['lang_'+this.userLang];
+				this.TEXT0008 = this.TextLangList[7]['lang_'+this.userLang];
+				this.TEXT0009 = this.TextLangList[8]['lang_'+this.userLang];
+				this.TEXT1000 = this.TextLangList[9]['lang_'+this.userLang];
+				this.TEXT1001 = this.TextLangList[10]['lang_'+this.userLang];
+				this.TEXT1002 = this.TextLangList[11]['lang_'+this.userLang];
+				this.TEXT1003 = this.TextLangList[12]['lang_'+this.userLang];
+				this.TEXT1004 = this.TextLangList[13]['lang_'+this.userLang];
+				this.TEXT1005 = this.TextLangList[14]['lang_'+this.userLang];
+				this.TEXT1006 = this.TextLangList[15]['lang_'+this.userLang];
+				this.TEXT1007 = this.TextLangList[16]['lang_'+this.userLang];
+				this.TEXT2000 = this.TextLangList[17]['lang_'+this.userLang];
+				this.TEXT2001 = this.TextLangList[18]['lang_'+this.userLang];
+				this.TEXT2002 = this.TextLangList[19]['lang_'+this.userLang];
+				this.TEXT2003 = this.TextLangList[20]['lang_'+this.userLang];
+				this.TEXT2004 = this.TextLangList[21]['lang_'+this.userLang];
+				this.TEXT2005 = this.TextLangList[22]['lang_'+this.userLang];
+				this.TEXT2006 = this.TextLangList[23]['lang_'+this.userLang];
+				
+				this.$forceUpdate()
+
+				this.columnDefs = [
+					{headerName: this.TEXT1001, field:"id", hide:true, sortable: false, filter: true, resizable:true},
+					{headerName: this.TEXT1002, field:"ip", hide:true, sortable: false, filter: true, resizable:true},
+					{headerName: this.TEXT1003, field:"file_name", width:230, cellStyle: {textAlign: "left", "padding-right": "0px"}, sortable: false, filter: true, resizable:true},
+					{headerName: this.TEXT1004, field:"file_conversation_size", width:100, cellStyle: {textAlign: "right", padding: "0px"}, sortable: true, filter: false, resizable:true},  
+					{headerName: this.TEXT1005, field:"file_expiration_datetime", width:145, cellStyle: {textAlign: "center", padding: "0px"}, sortable: true, filter: false, resizable:true}, 
+					{
+						field: 'download',
+						headerName: '',
+						cellStyle: {textAlign: "center", padding: "0px"},
+						cellRenderer: "BtnCellRenderer",
+						cellRendererParams: {
+							initGrid: this.initDataGrid.bind(this),
+							RendererDownBTN: this.RendererDownBTN.bind(this),
+							RendererDelBTN: this.RendererDelBTN.bind(this),
+							RendererMSG: this.RendererMSG.bind(this),
+							userLang: this.userLang,
+							userIP: this.userIP
+						},
+						width:180
+					}
+				];
+				if(this.gridApi != null){
+					this.gridApi.setColumnDefs(this.columnDefs);
+					//this.gridOptions.redrawRows();
+					//this.gridApi.sizeColumnsToFit();
+				}
+			}
 		},
 		fnc_alert() {
 			Swal.fire({
@@ -408,7 +593,7 @@ export default {
 				formData.append('files', this.files[i]);
 			}
 			formData.append('file_info_list', JSON.stringify(file_info_list));
-			//console.log(file_info_list);
+			
 			axios.post('/File/FileUpload'
 					, formData										
 					, { headers: { 'Content-Type': 'multipart/form-data' } 
@@ -416,7 +601,7 @@ export default {
 				if (response.status == '200') {
 					Toast.fire({
 						icon: 'success',
-						title: '파일이 공유 되었습니다.'
+						title: this.TEXT2002
 					})
 					this.uploadModal = false;
 					this.initDataGrid();

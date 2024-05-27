@@ -47,7 +47,13 @@ public class FileController {
 	
 	@Autowired
 	FileService FileService;
+	
 
+	@GetMapping(path = "/TextLangList")
+	public List<HashMap<String, String>> TextLangList(HttpServletRequest req) throws Exception {
+		return FileService.TextLangList();
+	}
+	
 	@GetMapping(path = "/CodeList")
 	public List<HashMap<String, String>> CodeList(HttpServletRequest req) throws Exception {
 		String code_id = (req.getParameter("code_id") == null? "":req.getParameter("code_id"));

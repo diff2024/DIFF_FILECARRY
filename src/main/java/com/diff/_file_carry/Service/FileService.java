@@ -26,7 +26,11 @@ public class FileService {
 	
 	@Autowired
 	FileMapper FileMapper;
-
+	
+	public List<HashMap<String, String>> TextLangList() throws Exception{
+		return FileMapper.TextLangList();
+	}
+	
 	public List<HashMap<String, String>> CodeList(HashMap<String, String> map) throws Exception{
 		return FileMapper.CodeList(map);
 	}

@@ -3,12 +3,18 @@
 	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.diff._file_carry.Mapper.FileMapper">
-
+	
+	<select id="TextLangList" resultType="HashMap">
+		select x.lang_ko, x.lang_en, x.lang_ch, x.lang_jp
+		  from text_lang_info x
+		 where 1=1
+		 order by cast(x.text_id as integer)
+	</select>
+	
 	<select id="CodeList" resultType="HashMap" parameterType="HashMap">
-		select code_detail_id, code_detail_name 
-		  from code_info
+		select code_detail_id, code_detail_name, code_lang_type
+		  from code_info 
 		 where code_id = #{code_id}
-		   and code_lang_type = #{code_lang_type}
 		 order by cast(code_id as integer), cast(code_detail_id as integer)
 	</select>
 	
@@ -20,7 +26,7 @@
 		 where x.ip = #{IP}
 		   and x.file_delete_yn = 'N'
 		   and x.file_system_expiration_datetime > left(cast(now() as varchar), 19)
-		 order by x.file_system_create_datetime asc
+		 order by x.file_system_expiration_datetime asc
 	</select>
 	
 	<select id="CodeValue" resultType="String" parameterType="HashMap">
