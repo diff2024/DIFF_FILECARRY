@@ -520,6 +520,7 @@ export default {
 				];
 				if(this.gridApi != null){
 					this.gridApi.setColumnDefs(this.columnDefs);
+					this.gridOptions.set
 					//this.gridOptions.redrawRows();
 					//this.gridApi.sizeColumnsToFit();
 				}
